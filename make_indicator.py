@@ -12,8 +12,8 @@ import talib
 pd.set_option('mode.chained_assignment',  None) # SettingWithCopyWarning 경고를 끈다
 import sqlite3
 # system_path = 'C:/Users/vosan/PycharmProjects/pythonProject/digital_currency/trading_upbit/back_test/db/'
-con = sqlite3.connect('upbit.db')
-cur = con.cursor()
+# con = sqlite3.connect('upbit.db')
+# cur = con.cursor()
 tickers = pyupbit.get_tickers()
 avgtime = 30
 def renko1(df):
@@ -64,9 +64,9 @@ def renko2(df):
     # https://pypi.org/project/mplfinance/
     # https://github.com/matplotlib/mplfinance/issues/63
     def make_renko(df):
-        df['렌코_고'] = (df['Close']-df['High'].shift(1))/df['High'].shift(1)
-        df['렌코_저'] = (df['Close']-df['Low'].shift(1))/ df['Low'].shift(1)
-        brick_size = df['Close'].mean()
+        df['렌코_고'] = (df['close']-df['high'].shift(1))/df['high'].shift(1)
+        df['렌코_저'] = (df['close']-df['low'].shift(1))/ df['low'].shift(1)
+        brick_size = df['close'].mean()
         ratio = abs((df['렌코_고'].mean()+df['렌코_저'].mean())/2)
         retdata = {}
         #https://towardsdatascience.com/mplfinance-matplolibs-relatively-unknown-library-for-plotting-financial-data-62c1c23177fd
@@ -124,67 +124,61 @@ def renko_sma(df):
     df['renko1_40평균'] = df['renko1_40'].rolling(window=avgtime).mean().round(3)
     df['renko1_bricks'] = df['renko1_bricks'].rolling(window=avgtime).mean().round(3)
     return df
-def heikin_ashi(df):
-    heikin_ashi_df = pd.DataFrame(index=df.index.values, columns=['Open', 'High', 'Low', 'Close'])
-    heikin_ashi_df['Close'] = (df['Open'] + df['High'] + df['Low'] + df['Close']) / 4
+def heikin_ashi(df,ticker):
+    heikin_ashi_df = pd.DataFrame(index=df.index.values, columns=['open', 'high', 'low', 'close'])
+    heikin_ashi_df['close'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4
     for i in range(len(df)):
         if i == 0:
-            heikin_ashi_df.iat[0, 0] = df['Open'].iloc[0]
+            heikin_ashi_df.iat[0, 0] = df['open'].iloc[0]
         else:
             heikin_ashi_df.iat[i, 0] = (heikin_ashi_df.iat[i - 1, 0] + heikin_ashi_df.iat[i - 1, 3]) / 2
-    heikin_ashi_df['High'] = heikin_ashi_df.loc[:, ['Open', 'Close']].join(df['High']).max(axis=1)
-    heikin_ashi_df['Low'] = heikin_ashi_df.loc[:, ['Open', 'Close']].join(df['Low']).min(axis=1)
-    heikin_ashi_df.rename(columns={'Open':'hei_open','High':'hei_high','Low':'hei_low','Close':'hei_close'},inplace=True)
+    heikin_ashi_df['high'] = heikin_ashi_df.loc[:, ['open', 'close']].join(df['high']).max(axis=1)
+    heikin_ashi_df['low'] = heikin_ashi_df.loc[:, ['open', 'close']].join(df['low']).min(axis=1)
+    heikin_ashi_df.rename(columns={'open':'hei_open','high':'hei_high','low':'hei_low','close':'hei_close'},inplace=True)
     # print(heikin_ashi_df)
     df = pd.concat([df, heikin_ashi_df], axis=1)
     return df
-
-def df_add(df):
+def df_add(df,ticker):
     avgtime = 30
-    df['고저평균대비등락율'] = (df['Close'] / ((df['High'] + df['Low']) / 2) - 1) * 100
+    df['고저평균대비등락율'] = (df['close'] / ((df['high'] + df['low']) / 2) - 1) * 100
     df['고저평균대비등락율'] = df['고저평균대비등락율'].round(2)
 
-    df['최고등락'] = (df['High']-df['Low'])/df['Low']*100
+    df['최고등락'] = (df[f'high']-df['low'])/df['low']*100
     df['최고등락평균'] = df['최고등락'].rolling(window=60).mean().round(3)
-    df['등락'] = (df['Close']-df['Open'])/df['Open']*100
+    df['등락'] = (df['close']-df['open'])/df['open']*100
     df['등락평균'] = df['등락'].rolling(window=60).mean().round(3)
 
     return df
-def change_price(df):
-    df['최고등락'] = (df['High']-df['Low'])/df['Low']*100
-    df['등락'] = (df['Close']-df['Open'])/df['Open']*100
+def change_price(df,ticker):
+    df['최고등락'] = (df['high']-df['low'])/df['low']*100
+    df['등락'] = (df['close']-df['open'])/df['open']*100
     return df
-def sma(df):
-    df['ma'] = round(talib.MA(df['Close'], timeperiod=avgtime),1)
-    df['ma5'] = round(talib.MA(df['Close'], timeperiod=5),1)
-    df['ma20'] = round(talib.MA(df['Close'], timeperiod=20),1)
-    df['ma60'] = round(talib.MA(df['Close'], timeperiod=60),1)
-    df['ma300'] = round(talib.MA(df['Close'], timeperiod=300),1)
+def sma(df,ticker):
+    df['ma'] = round(talib.MA(df['close'], timeperiod=avgtime),1)
+    df['ma5'] = round(talib.MA(df['close'], timeperiod=5),1)
+    df['ma20'] = round(talib.MA(df['close'], timeperiod=20),1)
+    df['ma60'] = round(talib.MA(df['close'], timeperiod=60),1)
+    df['ma300'] = round(talib.MA(df['close'], timeperiod=300),1)
     df['ma60마지'] = round(df['ma60']*0.98,1)
     df['ma300마지'] = round(df['ma300']*0.98,1)
     return df
-
-def CCI(df):
-    df['cci'] = talib.CCI(df['High'],df['Low'],df['Close'], timeperiod=14)
+def CCI(df,ticker):
+    df['cci'] = talib.CCI(df['high'],df['low'],df['close'], timeperiod=14)
     return df
-
-def CMO(df):
-    df['cmo'] = talib.CMO(df['Close'], timeperiod=14)
+def CMO(df,ticker):
+    df['cmo'] = talib.CMO(df['close'], timeperiod=14)
     return df
-
-def RSI(df):
-    df['rsi'] = round(talib.RSI(df['Close'],timeperiod=14),1)
+def RSI(df,ticker):
+    df['rsi'] = round(talib.RSI(df['close'],timeperiod=14),1)
     df['rsi_upper'] = 70
     df['rsi_lower'] = 30
 
     return df
-
-def BBAND(df):
-    df['band_upper'],df['band_middle'],df['band_lower'] = talib.BBANDS(df['Close'],20,2)
+def BBAND(df,ticker):
+    df['band_upper'],df['band_middle'],df['band_lower'] = talib.BBANDS(df['close'],20,2)
     return df
-
-def ATR(df):
-    df['atr'] = talib.ATR(df['High'],df['Low'],df['Close'], timeperiod=14)
+def ATR(df,ticker):
+    df['atr'] = talib.ATR(df['high'],df['low'],df['close'], timeperiod=14)
     return df
 
 if __name__ == '__main__':
@@ -197,7 +191,7 @@ if __name__ == '__main__':
     # df = heikin_ashi(df)
     df = change_price(df)
     df.index=df.index.strftime("%Y%m%d%H%M%S").astype(np.int64)
-    df.to_sql('test', con, if_exists='replace')
-
-    print(df)
-    con.commit()
+    # df.to_sql('test', con, if_exists='replace')
+    #
+    # print(df)
+    # con.commit()

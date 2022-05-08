@@ -31,10 +31,30 @@ def list_US():
 
 
 def index_numbers():
-    tickers ={'KS11':'코스피','KQ11':'코스닥','KS50':'코스피50','KS100':'코스피100','KRX100':'KRX100','KS200':'코스피200'
+    stocks ={'KS11':'코스피','KQ11':'코스닥','KS50':'코스피50','KS100':'코스피100','KRX100':'KRX100','KS200':'코스피200'
               ,'DJI':'다우존스','IXIC':'나스닥','US500':'S&P500','VIX':'VIX','STOXX50E':'유로스톡50','CSI300':'중국','HSI':'항셍'
               ,'FTSE':'영국','DAX':'독일','CAC':'프랑스'}
-
+    tickers=list(stocks.keys())
+    name = list(stocks.values())
+    for i,ticker in enumerate(tickers):
+        print(f'DB저장 중... [{i+1}:{len(tickers)}] | {name[i]}')
+        con = sqlite3.connect('macroeconomics.db')
+        # cur = con.cursor()
+        df = fdr.DataReader(ticker)
+        df.rename(columns={'Open':'open','High':'high','Low':'low','Close':'close'}, inplace=True)  # 컬럼명 변경
+        df = make_indicator.sma(df,ticker)
+        df = make_indicator.CCI(df,ticker)
+        df = make_indicator.CMO(df,ticker)
+        df = make_indicator.RSI(df,ticker)
+        df = make_indicator.df_add(df,ticker)
+        df = make_indicator.BBAND(df,ticker)
+        df = make_indicator.ATR(df,ticker)
+        df = make_indicator.heikin_ashi(df,ticker)
+        df.index = df.index.strftime("%Y%m%d").astype(np.int64)
+        table = name[i]
+        df.to_sql(table, con, if_exists='replace')
+        con.commit()
+        con.close()
 def bond():
     stocks ={'KR1YT=RR':'한국국채1년','KR10YT=RR':'한국국채10년','US1MT=X':'미국국채1개월','US10YT=X':'미국국채10년'
         ,'US3MT=X':'미국국채3개월','US2YT=X':'미국국채2년'}
@@ -42,31 +62,75 @@ def bond():
     name = list(stocks.values())
     for i,ticker in enumerate(tickers):
         print(f'DB저장 중... [{i+1}:{len(tickers)}] | {name[i]}')
-        con = sqlite3.connect('bond.db')
+        con = sqlite3.connect('macroeconomics.db')
         # cur = con.cursor()
         df = fdr.DataReader(ticker)
-        df = make_indicator.sma(df)
-        df = make_indicator.CCI(df)
-        df = make_indicator.CMO(df)
-        df = make_indicator.RSI(df)
-        df = make_indicator.df_add(df)
-        df = make_indicator.BBAND(df)
-        df = make_indicator.ATR(df)
-        df = make_indicator.heikin_ashi(df)
+        df.rename(columns={'Open':'open','High':'high','Low':'low','Close':'close'}, inplace=True)  # 컬럼명 변경
+        df = make_indicator.sma(df,ticker)
+        df = make_indicator.CCI(df,ticker)
+        df = make_indicator.CMO(df,ticker)
+        df = make_indicator.RSI(df,ticker)
+        df = make_indicator.df_add(df,ticker)
+        df = make_indicator.BBAND(df,ticker)
+        df = make_indicator.ATR(df,ticker)
+        df = make_indicator.heikin_ashi(df,ticker)
         df.index = df.index.strftime("%Y%m%d").astype(np.int64)
         table = name[i]
         df.to_sql(table, con, if_exists='replace')
         con.commit()
-
+        con.close()
 def exchange():
-    tickers ={'AUD/CHF':'호주/스위스','USD/KRW':'미국/한국','USD/EUR':'미국/유로','USD/JPY':'미국/엔화','CNY/KRW':'중국/한국'
+    stocks ={'AUD/CHF':'호주/스위스','USD/KRW':'미국/한국','USD/EUR':'미국/유로','USD/JPY':'미국/엔화','CNY/KRW':'중국/한국'
         ,'EUR/USD':'유로/달러','JPY/KRW':'일본/한국','AUD/USD':'호주/미국','EUR/JPY':'유로/일본','USD/RUB':'미국/러시아'}
-
+    tickers=list(stocks.keys())
+    name = list(stocks.values())
+    for i,ticker in enumerate(tickers):
+        print(f'DB저장 중... [{i+1}:{len(tickers)}] | {name[i]}')
+        con = sqlite3.connect('macroeconomics.db')
+        # cur = con.cursor()
+        df = fdr.DataReader(ticker)
+        df.rename(columns={'Open':'open','High':'high','Low':'low','Close':'close'}, inplace=True)  # 컬럼명 변경
+        df = make_indicator.sma(df,ticker)
+        df = make_indicator.CCI(df,ticker)
+        df = make_indicator.CMO(df,ticker)
+        df = make_indicator.RSI(df,ticker)
+        df = make_indicator.df_add(df,ticker)
+        df = make_indicator.BBAND(df,ticker)
+        df = make_indicator.ATR(df,ticker)
+        df = make_indicator.heikin_ashi(df,ticker)
+        df.index = df.index.strftime("%Y%m%d").astype(np.int64)
+        table = name[i]
+        df.to_sql(table, con, if_exists='replace')
+        con.commit()
+        con.close()
 def materials():
-    tickers ={'NG':'천연가스','ZG':'금','ZI':'은','HG':'구리'}
-
+    stocks ={'NG':'천연가스','ZG':'금','ZI':'은','HG':'구리'}
+    tickers=list(stocks.keys())
+    name = list(stocks.values())
+    for i,ticker in enumerate(tickers):
+        print(f'DB저장 중... [{i+1}:{len(tickers)}] | {name[i]}')
+        con = sqlite3.connect('macroeconomics.db')
+        # cur = con.cursor()
+        df = fdr.DataReader(ticker)
+        df.rename(columns={'Open':'open','High':'high','Low':'low','Close':'close'}, inplace=True)  # 컬럼명 변경
+        df = make_indicator.sma(df,ticker)
+        df = make_indicator.CCI(df,ticker)
+        df = make_indicator.CMO(df,ticker)
+        df = make_indicator.RSI(df,ticker)
+        df = make_indicator.df_add(df,ticker)
+        df = make_indicator.BBAND(df,ticker)
+        df = make_indicator.ATR(df,ticker)
+        df = make_indicator.heikin_ashi(df,ticker)
+        df.index = df.index.strftime("%Y%m%d").astype(np.int64)
+        table = name[i]
+        df.to_sql(table, con, if_exists='replace')
+        con.commit()
+        con.close()
 
 if __name__ == '__main__':
     # list_krx()
     bond()
+    exchange()
+    materials()
+    index_numbers()
 
