@@ -706,7 +706,6 @@ def qtable_moneytop(detail):
             for j in range(3):
                 col1.insert((i * 4) + 1, col2.pop(0))
         df=df[col1]
-
     return df
 def qtable_back_list(select):
     conn = sqlite3.connect(back_file)
@@ -733,8 +732,7 @@ def qtable_back_list(select):
     # print('back 컬럼명=',df.columns.tolist())
     if select == 'vj':
         df = df[['index', '평균수익률', '승률', '최대낙폭률', '일평균거래횟수', '최대보유종목수', '수익률합계', '수익금합계', '거래횟수', '필요자금', '배팅금액', '평균보유기간',
-                 '익절', '손절','매수전략', '매도전략'
-                 ]]
+                 '익절', '손절','매수전략', '매도전략']]
     elif select == 'vc':
         df = df[['index', '평균수익률', '승률', '최대낙폭률', '일평균거래횟수', '최대보유종목수', '수익률합계', '수익금합계', '거래횟수','필요자금', '배팅금액', '평균보유기간',
                  '익절', '손절', '변수','매수전략', '매도전략', '범위설정']]

@@ -54,6 +54,7 @@ def bond():
         df = make_indicator.ATR(df)
         df = make_indicator.heikin_ashi(df)
         df.index = df.index.strftime("%Y%m%d").astype(np.int64)
+        df.rename(columns={'Open':'open','High':'high','Low':'low','Close':'close','Change':'change'}, inplace=True)  # 컬럼명 변경
         table = name[i]
         df.to_sql(table, con, if_exists='replace')
         con.commit()
