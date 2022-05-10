@@ -21,6 +21,7 @@ from PyQt5.QtWidgets import (QApplication, QTableWidget)
 from collections import Counter
 from pykrx import stock
 from PyQt5.QtTest import QTest
+import datetime
 
 
 class Window(QWidget):
@@ -84,9 +85,10 @@ class Window(QWidget):
         self.ch_r_cap = QCheckBox('시총,주식수')
         self.ch_r_ohlcv = QCheckBox('시고저종')
         self.ch_r_fun = QCheckBox('지표')
-        self.radio_ch1 = QRadioButton('Chart_1')
+        self.radio_ch1 = QRadioButton('거시경제')
         self.radio_ch1.setChecked(True)
-        self.radio_ch2 = QRadioButton('Chart_2')
+        self.radio_ch2 = QRadioButton('국내주식')
+        self.radio_ch3 = QRadioButton('미국주식')
         self.edit1 = QLineEdit(self)
         self.edit2 = QLineEdit(self)
         self.edit3 = QLineEdit(self)
@@ -142,6 +144,7 @@ class Window(QWidget):
         self.grid_top.setSpacing(10)
         self.grid_top.addWidget(self.radio_ch1,0,0)
         self.grid_top.addWidget(self.radio_ch2,1,0)
+        self.grid_top.addWidget(self.radio_ch3,2,0)
         self.grid_top.addWidget(self.lbl1,0,1)
         self.grid_top.addWidget(self.edit1,1,1)
         self.grid_top.addWidget(self.lbl2,0,2)
@@ -188,7 +191,7 @@ class Window(QWidget):
         self.box_rd.addWidget(self.holic_btn3)
 
         self.frame_up = QFrame()
-        self.frame_up.setMaximumSize(10000,  70)
+        self.frame_up.setMaximumSize(10000,  80)
         self.frame_up.setFrameShape(QFrame.StyledPanel)
         self.frame_up.setLayout(self.grid_top)
 
@@ -259,8 +262,13 @@ class Window(QWidget):
     def configureTable1(self, table):
         # table.setSortingEnabled(False)
         # table.clear()
-        detail = self.ch_mt_de.isChecked()
-        self.df1 = qtable_moneytop(detail)
+        if self.radio_ch1.isChecked():
+            self.file = macro_file
+        elif self.radio_ch2.isChecked():
+            self.file = KRX_file
+        elif self.radio_ch3.isChecked():
+            self.file = US_stock_file
+        self.df1 = qtable_moneytop(self.file)
         table.setRowCount(len(self.df1.index))
         table.setColumnCount(len(self.df1.columns))
         header = table.horizontalHeader()# 컬럼내용에따라 길이 자동조절
@@ -410,11 +418,11 @@ class Window(QWidget):
         stock_code = item.text()
         date = self.table1.horizontalHeaderItem(column).text()
         date = str(date)[0:4]
-        stock_name = make_stock_name(stock_code)
-        df = get_data(stock_code, date, start, end, )
+        # stock_name = make_stock_name(stock_code)
+        df = get_data(stock_code, date,self.file)
         df = df_add(df,self.edit1_t,self.edit6_t)
         # View_Chart = self.select_chart()
-        self.chart = Chart(df, stock_name, stock_code, date, self.edit2_t, self.edit3_t, self.edit4_t,self.edit5_t,self.edit7_t)
+        self.chart = Chart(df, stock_code, date, self.edit2_t, self.edit3_t, self.edit4_t,self.edit5_t,self.edit7_t)
         self.chart.setGeometry(0, 30, 3850, 1010)
         self.chart.show()
     def celldoubleclicked_event2(self):
@@ -577,137 +585,58 @@ class Window(QWidget):
         self.edit7_t = self.edit7.text()
         pass
 def df_date(df,date):
-    # print(df.index)
-    df.index = df.index.astype(str)
-    df.loc[df.index,'날짜'] = df.index.str[4:8] ##index에서 str짤라가지고 date컬럼 생성
-    if len(date) == 4: # 날짜변수로 4글자가 오면
-        if (df['날짜']==date).any(): #'날짜'컬럼에 date가 포함되는지 여부, all() 사용 시 -모든값이 date인지
-            df = df[df.날짜 == date]  # date변수와 일치하는 'date'컬럼 값 만 df에 저장
-        else:
-            df = pd.DataFrame()
-            print('일치하는 날짜 없음')
-    elif len(date) == 8: # 날짜변수로 8글자가 오면
-        # groups = df.groupby('날짜') #날짜별 그룹 만들기
-        df = df[df.날짜 >= date[0:4]] #date변수의 앞숫자 보다 크거나 같은 값의 범위만 df에 저장
-        df = df[df.날짜 <= date[4:8]] #date변수의 뒷숫자 보다 작거나 같은 값의 범위만 df에 다시 저장
+    # df.index = df.index.astype(str)
+    # df.loc[df.index,'날짜'] = df.index.str[4:8] ##index에서 str짤라가지고 date컬럼 생성
+    df['날짜'] = df.index  ##index에서 str짤라가지고 '시간'컬럼 생성
+    df['년도'] = df['날짜'].astype(str).str[:4]
+    if (df['년도']==date).any(): #'날짜'컬럼에 date가 포함되는지 여부, all() 사용 시 -모든값이 date인지
+        df = df[df.년도 == date]  # date변수와 일치하는 'date'컬럼 값 만 df에 저장
+        print(df)
     else:
-        print('date값 확인 필요')
-        df=pd.DataFrame()
+        df = pd.DataFrame()
+        print('일치하는 날짜 없음')
     return df
-def df_time(df,start,end):
-    start = start.replace(':', '')  # date변수의 ':'를 제거 후 저장
-    end = end.replace(':', '')  # date변수의 ':'를 제거 후 저장
-    start = start+'00' #시작시간에 초 를 더하기
+def split_time(df,start,end):
     start = int(start) #시작시간을 정수형으로 변환
-    end = end+'00' #끝시간에 초 를 더하기
+    if end == 'now':
+        end = datetime.datetime.now().strftime("%Y%m%d")
     end = int(end) #끝시간을 정수형으로 변환
-    df.index = df.index.astype(str)
-    df['시간'] = df.index.str[8:14]  ##index에서 str짤라가지고 '시간'컬럼 생성
-    df = df.astype({'시간':'int'}) #'시간'컬럼을 int형으로 변환
-    df = df[df.시간 >= start]
-    df = df[df.시간 <= end]
-    return df
-def qtable_moneytop(detail):
-    def moneytop():
-        conn = sqlite3.connect(stock_tick_file)
-        cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        table_list=cursor.fetchall() #fetchall 한번에 모든 로우 데이터 읽기 (종목코드 읽기)
-        if not table_list:
-            print('* DB 테이블이 비어있음 - 확인 필요 *')
-        table_list = np.concatenate(table_list).tolist() #모든테이블을 리스트로변환 https://codechacha.com/ko/python-flatten-list/
-        [table_list.remove(x) for x in table_list if x.isalpha()] #문자열로된 테이블만 추출하여 리스트에서 삭제
+    # df.index = df.index.astype(str)
+    df['날짜'] = df.index.astype(int)  ##index에서 str짤라가지고 '시간'컬럼 생성
+    # df = df.astype({'시간':'int'}) #'시간'컬럼을 int형으로 변환
+    df = df[df.날짜 >= start]
+    df = df[df.날짜 <= end]
+    df['년도'] = df['날짜'].astype(str).str[:4]
+    groups = df.groupby('년도') #날짜별 그룹 만들기
+    return df,groups
+def qtable_moneytop(file):
 
-        table = 'moneytop'
-        df_mt = pd.read_sql("SELECT * FROM '"+ table+"'", conn).set_index('index')
-        df_mt = df_time(df_mt, start, end)
-        mt_list = df_mt['거래대금순위'].to_dict()
-        mt_list = list(set(';'.join(list(mt_list.values())).split(';'))) #머니탑 종목 리스트화
-        na_list = list(set(mt_list) - set(table_list))  # 머니탑에는 있지만 테이블에 없는 종목을 na_list로 인덱싱
-        if len(na_list) != 0: #머니탑에는 있지만 테이블에 없는 종목이 있을 경우
-            mt_list = list(set(mt_list)-set(na_list)) # 머니탑에서 테이블에 없는 종목은 삭제
-        conn.close()
-        # df_mt.index = df_mt.index.astype(str)
-        df_mt.loc[df_mt.index, '날짜'] = df_mt.index.astype(str).str[4:8]  ##index에서 str짤라가지고 '날짜'컬럼 생성
-        groups = df_mt.groupby('날짜') #날짜별 그룹 만들기
-        days = list(groups.size().index)
-        df = pd.DataFrame(index=mt_list)
-        df['종목코드'] = df.index
-        for stock_code in mt_list:
-            name = make_stock_name(stock_code)
-            df.loc[stock_code,'종목명'] = name
-        for day in days: #날짜별로접근
-            df_mt_date = df_mt[df_mt.날짜 == day] #날짜 기준으로 돌아가며 df불러옴
-            #머니탑에 나열되어있는 주식코드번호를 df_moneytop셀에 집어넣기
-            column_max = df_mt_date['거래대금순위'].apply(str).map(len).max()  # 거래대금칼럼의 가장 긴str 값을 바인딩.
-            column_max = int((column_max-6)/7) #생성할 컬럼 수 계산
-            qtable_moneytop = pd.DataFrame(df_mt_date.거래대금순위.str.split(';', column_max).tolist()) #구분자를 이용 종목코드 셀마다 나눠 넣기
-            # https://rfriend.tistory.com/471
-            # qtable_moneytop.index = df_groups_date.index
-            # qtable_moneytop.to_csv("D:/PythonProjects/qtable_moneytop.csv", header=True, index=True, encoding='utf-8-sig')
-            moneytop = Counter()
-            for i in range(len(qtable_moneytop.columns)):
-                mt=qtable_moneytop[i].value_counts()
-                mtdc = mt.to_dict() #https://seong6496.tistory.com/109
-                mttt = Counter(mtdc) #https://djangoworld.tistory.com/9
-                moneytop = mttt + moneytop
-            # print(groups_date[0:2]+'/'+groups_date[2:4],'가장 많이 나온 종목=',moneytop)
-            df_moneytop_date = pd.DataFrame.from_dict(moneytop, orient='index',columns=[day])
-            # df_moneytop_date.fillna('',inplace=True) #결측값 ''로 변경
-            df_moneytop_date = df_moneytop_date.astype(int)
-            df = pd.concat([df, df_moneytop_date], axis=1)
-        df.fillna(0,inplace=True) #nan 값을 0으로 바꾸기
-        if len(na_list) != 0: #머니탑에는 있지만 테이블에 없는 종목이 있을 경우
-            drop_index=df[df['종목코드']==0].index
-            df.drop(drop_index,inplace=True)  # 종목명이 0인 행 삭제
-        return df,mt_list
-    def moneytop_add(df,mt_list):
-        df_add = pd.DataFrame(index = mt_list)
-        conn = sqlite3.connect(stock_tick_file)
-        for stock_code in mt_list:
-            # name = make_stock_name(stock_code,stock_list)
-            # df_add.loc[stock_code,'종목명'] = name
-            df_db = pd.read_sql("SELECT * FROM " + "'"+ stock_code+"'", conn).set_index('index')
-            df_db = df_time(df_db, start, end)
-
-            df_db.loc[df_db.index, '날짜'] = df_db.index.str[4:8]  ##index에서 str짤라가지고 '날짜'컬럼 생성
-            groups = df_db.groupby('날짜')  # 날짜별 그룹 만들기
-            days = list(groups.size().index)
-            for day in days:  # 날짜별로접근
-                df_db_date = df_db[df_db.날짜 == day]  # 날짜가 같은 데이터만 df_db로 불러옴
-                # print(df_db_date)
-                low=df_db_date.loc[df_db_date.index[-1],'저가']
-
-                high = df_db_date.loc[df_db_date.index[-1],'고가']
-                amount = df_db_date.loc[df_db_date.index[-1],'당일거래대금']
-                amount=round(amount)
-                ch = df_db_date['체결강도'].max()
-                ch=round(ch)
-                byundong = (high-low)/low*100
-                byundong=round(byundong)
-                df_add.loc[stock_code,day+'거래대금']=amount
-                df_add.loc[stock_code,day+'최고체강']=ch
-                df_add.loc[stock_code,day+'변동률']=byundong
-                # print(df_add)
-        conn.close()
-        df_add.fillna(0,inplace=True)
-        df_add = df_add.sort_index(axis=1) #컬럼명을 날짜순으로 정렬
-        df = pd.concat([df,df_add],axis=1)
-        return df
-    df,mt_list = moneytop()
-    if detail == True:
-        df = moneytop_add(df,mt_list)
-        # 컬럼순서 날짜별로 바꾸기
-        col = df.columns[2:].tolist()
-        col_num = int(len(col) / 4)
-        col1 = df.columns[2:col_num + 2].tolist()
-        col2 = df.columns[col_num + 2:].tolist()
-        for i in range(col_num):
-            for j in range(3):
-                col1.insert((i * 4) + 1, col2.pop(0))
-        df=df[col1]
-
-    return df
+    conn = sqlite3.connect(file)
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    table_list=cursor.fetchall() #fetchall 한번에 모든 로우 데이터 읽기 (종목코드 읽기)
+    if not table_list:
+        print('* DB 테이블이 비어있음 - 확인 필요 *')
+    table_list = np.concatenate(table_list).tolist() #모든테이블을 리스트로변환 https://codechacha.com/ko/python-flatten-list/
+    df_macro=pd.DataFrame()
+    for i,table in enumerate(table_list):
+        df = pd.read_sql("SELECT * FROM '"+ table+"'", conn).set_index('index')
+        df,groups = split_time(df, start, end)
+        df_groups = groups.size()
+        # df_groups=Series(index = table)
+        # print(df_groups)
+        # quit()
+        # df_groups = df_groups.transpose()
+        df_macro = pd.concat([df_macro,df_groups],axis=1)
+        # print(df_macro)
+        # df_macro.
+    df_macro.columns = table_list
+    df_macro = df_macro.transpose() #행,열 바꾸기
+    df_macro['종목'] = df_macro.index
+    col1 = df_macro.columns[-1:].to_list() #컬럼 순서 바꾸기
+    col2 = df_macro.columns[:-1].to_list()
+    df_macro = df_macro[col1+col2]
+    return df_macro
 def qtable_back_list(select):
     conn = sqlite3.connect(back_file)
     cursor = conn.cursor()
@@ -896,10 +825,10 @@ def make_stock_code(stock_name):
         # print(stock_info)
         stock_code = stock_info.iloc[0]['종목코드']  # 종목코드로 변환
     return stock_code
-def get_data(stock_code,date,start,end,):
-    if not os.path.isfile(stock_tick_file):
+def get_data(stock_code,date,file):
+    if not os.path.isfile(file):
         print('* 파일 없음 - 경로 확인 *')
-    conn = sqlite3.connect(stock_tick_file)
+    conn = sqlite3.connect(file)
     cursor = conn.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     try:
@@ -908,12 +837,21 @@ def get_data(stock_code,date,start,end,):
         print('* db파일에 종목 없음 *')
         df = []
     df = df_date(df, date)
-    df = df_time(df, start, end)
     if df.empty:
         print('* db테이블에 종목은 있으나 데이터가 비어있음 또는 머니탑에 종목은 있으나 테이블이 비어있음- 확인 필요 *')
 
     conn.close()
     return df
+def get_table_list(file):
+    conn = sqlite3.connect(file)
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    table_list = cursor.fetchall()  # fetchall 한번에 모든 로우 데이터 읽기 (종목코드 읽기)
+    if not table_list:
+        print('* DB 테이블이 비어있음 - 확인 필요 *')
+    table_list = np.concatenate(table_list).tolist()  # 모든테이블을 리스트로변환 https://codechacha.com/ko/python-flatten-list/
+    # print(table_list)
+    return table_list
 
 def crosshair1(main_pg, sub_pg1, sub_pg2,sub_pg3,sub_pg4,sub_pg5,sub_pg6,sub_pg7,sub_pg8,sub_pg9,sub_pg10,sub_pg11):
     vLine1 = pg.InfiniteLine()
@@ -1516,25 +1454,6 @@ def crosshair2(main_pg, sub_pg1, sub_pg2,sub_pg3,sub_pg4,sub_pg5,sub_pg6,sub_pg7
     sub_pg11.proxy = pg.SignalProxy(sub_pg1.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
     sub_pg10.proxy = pg.SignalProxy(sub_pg1.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
 
-def df_backtest(stock_code,df,df_back_list):
-    marker_index=df_back_list.index[df_back_list['종목코드'] == stock_code].tolist() #종목명 매칭하여 완벽히 동일한 글자가 들어가면 인덱스 값 추출
-    if not marker_index :
-        print('* 백테스트 db파일에 종목 없음 *')
-    df_back = df_back_list.loc[marker_index] #인덱스 매칭하여 해당 행만 추출
-    df_back = df_back[df_back['종목코드'] == stock_code] #동일한 시간에 2종목이 매수될 수 있으므로 다시 걸러줌
-    df_back_time_buy = df_back[['매수시간','매수가']] #매수에 대한 DF추출
-    df_back_time_sell = df_back[['매도시간','매도가','수익률']]#매도에 대한 DF추출
-    df_back_time_buy.set_index('매수시간',inplace=True) #매수에 대한 인덱스 재 정의
-    df_back_time_sell.set_index('매도시간',inplace=True) #매도에 대한 인덱스 재 정의
-    df_back_time_buy = df_back_time_buy.astype(float) #str을 float으로 변환
-    df_back_time_sell = df_back_time_sell.astype(float)
-    df_back = pd.concat([df_back_time_buy,df_back_time_sell]) # buy + sell 행방향으로 합치기
-    df_back.index = df_back.index.astype(str) #df를 합치기위해 index타입 변경
-    df.drop(['매수가','매도가'],axis=1,inplace=True) #df_add에서 매수가,매도가를 만들어줬는데 이를 지우기 위함
-    df=pd.merge(df, df_back,left_index = True, right_index = True,how = 'left') # 인덱스기준으로 df + df_back 합치기
-
-    # df.to_csv("D:/PythonProjects/df_marker.csv", header=True, index=True, encoding='utf-8-sig')
-    return df
 def db_stock_list():
     conn = sqlite3.connect(stock_tick_file)
     cursor = conn.cursor()
@@ -1547,7 +1466,7 @@ def db_stock_list():
     df.rename(columns={'index': '종목코드'}, inplace=True)  # 컬럼명 변경
     return df
 class Chart(QWidget):
-    def __init__(self,df,stock_name,stock_code,date,edit2,edit3,edit4,edit5,edit7):
+    def __init__(self,df,stock_code,date,edit2,edit3,edit4,edit5,edit7):
     # def __init__(self):
         super().__init__()
         # self.win = pg.GraphicsLayoutWidget(show=True)
@@ -1581,7 +1500,7 @@ class Chart(QWidget):
         # p1_1 = self.win.addPlot(row=0, col=0,title=stock_name + date,axisItems={'bottom': pg.DateAxisItem()})
         # p1_2 = self.win.addPlot(row=1, col=0,title='체결강도',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
 
-        p1_1 = self.win1.addPlot(row=0, col=0,title=f'{stock_name}({stock_code}), {str(date)[:2]}/{str(date)[2:4]}',axisItems={'bottom': bottomAxis_1})
+        p1_1 = self.win1.addPlot(row=0, col=0,title=f'({stock_code}), {str(date)[:2]}/{str(date)[2:4]}',axisItems={'bottom': bottomAxis_1})
         p1_2 = self.win1.addPlot(row=1, col=0,title='체결강도',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
         p1_3 = self.win1.addPlot(row=2, col=0,title='체결강도',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
         # p1_4 = self.win1.addPlot(row=0, col=1,title='거래대금',axisItems={'bottom': bottomAxis_date_1})
@@ -1595,7 +1514,7 @@ class Chart(QWidget):
         p1_11 = self.win1.addPlot(row=1, col=3,title='잔량1',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
         p1_12 = self.win1.addPlot(row=2, col=3,title='잔량2',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
 
-        p2_1 = self.win2.addPlot(row=0, col=0, title=f'{stock_name}({stock_code}), {str(date)[:2]}/{str(date)[2:4]}',axisItems={'bottom': bottomAxis_2})
+        p2_1 = self.win2.addPlot(row=0, col=0, title=f'({stock_code}), {str(date)[:2]}/{str(date)[2:4]}',axisItems={'bottom': bottomAxis_2})
         p2_2 = self.win2.addPlot(row=1, col=0, title='체결강도', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
         p2_3 = self.win2.addPlot(row=2, col=0, title='체결강도', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
         p2_4 = self.win2.addPlot(row=0, col=1, title='거래대금', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
@@ -1726,14 +1645,14 @@ class Chart(QWidget):
         p2_12.clear()
 
         # xticks = [x.timestamp() - 32400 for x in df.index]
-        df['index_time'] = pd.to_datetime(df.index, format='%Y%m%d%H%M%S')
+        df['index_time'] = pd.to_datetime(df.index, format='%Y%m%d')
         df = df.astype({'index_time': 'str'})
         df=df.drop_duplicates(['index_time']) #시간이 중복인 행 제거
         df.loc[df.index, 'index_time'] = df[df.index_time.str[-2:] == '00']   # index_chart의 초가 '00'인 경우만 index_chart컬럼 값 저장
         df = df.astype({'index_time': 'str'}) #'index_time'컬럼을 str로 변환
         df['index_time'] = df['index_time'].str[11:-3]
 
-        df['index_date'] = pd.to_datetime(df.index, format='%Y%m%d%H%M%S')
+        df['index_date'] = pd.to_datetime(df.index, format='%Y%m%d')
         df = df.astype({'index_date': 'str'})
         p = df.index[df['날짜']!=df['날짜'].shift(1)] # 날짜가 바뀌는 행의 인덱스를 추출
         df['index_date'] = df.loc[p,'index_date'] #추출한 인덱스값의 'index_date'컬럼 값만 남김
@@ -1789,18 +1708,19 @@ class Chart(QWidget):
         w_dot = pg.mkPen(color='w', width=1, style=QtCore.Qt.DotLine)
         r_dash = pg.mkPen(color='r', width=1, style=QtCore.Qt.DashLine)
         g_dash = pg.mkPen(color=[0,130,153], width=1.2, style=QtCore.Qt.DashLine)
-
-        p1_1.plot(x=xValue, y=df['이평5' ], pen=(120,200,200),name='이평5')
-        p1_1.plot(x=xValue, y=df['이평60' ], pen=(120,150,150),name='이평60')
-        # p1_1.plot(x=xValue, y=df['이평60마지' ], pen=y_dot,name='이평60마지')
-        p1_1.plot(x=xValue, y=df['이평300' ], pen=(128, 65,217),name='이평300')
-        # p1_1.plot(x=xValue, y=df['이평300마지' ], pen=g_dot,name='이평300마지')
-        p1_1.plot(x=xValue, y=df['이평1200' ], pen=(120, 50, 50),name='이평1200')
-        p1_1.plot(x=xValue, y=df['시가'  ], pen=r_dash,name='시가')
-        p1_1.plot(x=xValue, y=df['고가'  ], pen=g_dash,name='고가')
-        p1_1.plot(x=xValue, y=df['저가'  ], pen=(  0, 51,153),name='저가')
-        p1_1.plot(x=xValue, y=df['현재가'], pen=(200, 50, 50),name='가격')
-        p1_1.plot(x=xValue, y=df['이평'  ], pen=(204,114, 61),name='이평')
+        print(df['ma5'])
+        print(xValue)
+        # p1_1.plot(x=xValue, y=df['ma5'], pen=(120,200,200),name='ma5')
+        # p1_1.plot(x=xValue, y=df['ma60'], pen=(120,150,150),name='ma60')
+        # p1_1.plot(x=xValue, y=df['이평60마지'], pen=y_dot,name='이평60마지')
+        # p1_1.plot(x=xValue, y=df['ma300'], pen=(128, 65,217),name='ma300')
+        # p1_1.plot(x=xValue, y=df['이평300마지'], pen=g_dot,name='이평300마지')
+        # p1_1.plot(x=xValue, y=df['이평1200'], pen=(120, 50, 50),name='이평1200')
+        # p1_1.plot(x=xValue, y=df['open'], pen=r_dash,name='open')
+        # p1_1.plot(x=xValue, y=df['high'], pen=g_dash,name='high')
+        # p1_1.plot(x=xValue, y=df['low'], pen=(  0, 51,153),name='low')
+        p1_1.plot(x=xValue, y=df['close'], pen=(200, 50, 50),name='close')
+        p1_1.plot(x=xValue, y=df['이평'], pen=(204,114, 61),name='이평')
 
         p1_1.plot(x=buy_index, y=buy_price,   pen =None, symbolBrush =(200,  0,  0),symbolPen ='w', symbol='t' , symbolSize=10, name="진입") #마커
         p1_1.plot(x=sell_index, y=sell_price, pen =None, symbolBrush =(  0,  0,200),symbolPen ='w', symbol='t1', symbolSize=10, name="청산") #마커
@@ -1808,137 +1728,137 @@ class Chart(QWidget):
         # lr.setZValue(-1)
         # p1_1.addItem(lr)
 
-        p1_2.plot(x=xValue, y=df['체결강도'],pen=(200, 50, 50),fillLevel=int(edit2), brush=(50,50,200,50),name='체결강도')
-        p1_2.plot(x=xValue, y=df['체결강도평균'],   pen=(204,114, 61), name='체결강도평균')
-        p1_2.plot(x=xValue, y=df['체결강도최고'],   pen=y_dot,         name='체결강도최고')
-        p1_2.plot(x=xValue, y=df['체결강도최저'],   pen=g_dot,         name='체결강도최저')
-        p1_2.plot(x=xValue, y=df['체결강도평균마지+'], pen=g_dash,        name='체결강도평균마지+')
-        p1_2.plot(x=xValue, y=df['체결강도평균마지-'], pen=g_dash,        name='체결강도평균마지-')
+        # p1_2.plot(x=xValue, y=df['체결강도'],pen=(200, 50, 50),fillLevel=int(edit2), brush=(50,50,200,50),name='체결강도')
+        # p1_2.plot(x=xValue, y=df['체결강도평균'],   pen=(204,114, 61), name='체결강도평균')
+        # p1_2.plot(x=xValue, y=df['체결강도최고'],   pen=y_dot,         name='체결강도최고')
+        # p1_2.plot(x=xValue, y=df['체결강도최저'],   pen=g_dot,         name='체결강도최저')
+        # p1_2.plot(x=xValue, y=df['체결강도평균마지+'], pen=g_dash,        name='체결강도평균마지+')
+        # p1_2.plot(x=xValue, y=df['체결강도평균마지-'], pen=g_dash,        name='체결강도평균마지-')
 
         # p1_3.plot(x=xValue, y=df['체강차체강평균'], pen=(50, 50, 200),name='체강차체강평균')
         # p1_3.plot(x=xValue, y=df['체결강도'], pen=(50, 100, 50),name='체결강도')
-        p1_3.plot(x=xValue, y=df['체강차체강평균'], pen=(152, 20, 20),fillLevel=int(edit7), brush=(50,50,200,50),name='체강-체강평균')
-        p1_3.plot(x=xValue, y=df['체강차체강평균최저'], pen=g_dot,name='체강-체강평균(최저)')
-        p1_3.plot(x=xValue, y=df['체강차체강평균최고'], pen=y_dot,name='체강-체강평균(최고)')
-
-        p1_4.plot(x=xValue,y=df['당일거래대금'], pen='c',fillLevel=int(edit3), brush=(50,50,200,50),name='당일거래대금')
+        # p1_3.plot(x=xValue, y=df['체강차체강평균'], pen=(152, 20, 20),fillLevel=int(edit7), brush=(50,50,200,50),name='체강-체강평균')
+        # p1_3.plot(x=xValue, y=df['체강차체강평균최저'], pen=g_dot,name='체강-체강평균(최저)')
+        # p1_3.plot(x=xValue, y=df['체강차체강평균최고'], pen=y_dot,name='체강-체강평균(최고)')
+        #
+        # p1_4.plot(x=xValue,y=df['당일거래대금'], pen='c',fillLevel=int(edit3), brush=(50,50,200,50),name='당일거래대금')
 
         # p1_5.plot(x=xValue, y=df['초당거래대금'], pen=(50, 50, 200),name='초당거래대금')
         # p1_5.plot(x=xValue, y=df['초당거래대금변동'], pen=(50, 50, 200),name='초당거래대금변동')
-        p1_5.plot(x=xValue, y=df['초당거래대금평균'],     pen=(200, 50, 50),fillLevel=5,brush=(200,50,50,50),name='초당거래대금평균')
-        p1_5.plot(x=xValue, y=df['초당거래대금평균최고'], pen=y_dot,name='초당거래대금평균최고')
-        p1_5.plot(x=xValue, y=df['초당거래대금평균최고마지'], pen=g_dot,name='초당거래대금평균최고마지')
-        p1_5.plot(x=xValue, y=df['초대금평균차초대금평균최고'],     pen=(120,200,200),name='초대금평균-초대금평균최고')
-        p1_5.plot(x=xValue, y=df['초당거래대금변동평균' ],pen=(128, 65,217),name='초당거래대금변동평균')
+        # p1_5.plot(x=xValue, y=df['초당거래대금평균'],     pen=(200, 50, 50),fillLevel=5,brush=(200,50,50,50),name='초당거래대금평균')
+        # p1_5.plot(x=xValue, y=df['초당거래대금평균최고'], pen=y_dot,name='초당거래대금평균최고')
+        # p1_5.plot(x=xValue, y=df['초당거래대금평균최고마지'], pen=g_dot,name='초당거래대금평균최고마지')
+        # p1_5.plot(x=xValue, y=df['초대금평균차초대금평균최고'],     pen=(120,200,200),name='초대금평균-초대금평균최고')
+        # p1_5.plot(x=xValue, y=df['초당거래대금변동평균' ],pen=(128, 65,217),name='초당거래대금변동평균')
 
 
-        p1_6.plot(x=xValue, y=df['거래대금각도' ],  pen=(120,200,200), name='거래대금각도')
+        # p1_6.plot(x=xValue, y=df['거래대금각도' ],  pen=(120,200,200), name='거래대금각도')
         # p1_6.plot(x=xValue, y=df['초당거래대금평균120'],  pen=(128, 65,217), name='초당거래대금평균120')
 
-        p1_7.plot(x=xValue, y=df['초당매수수량'],     pen=(152, 20, 20),name='초당매수수량')
-        p1_7.plot(x=xValue, y=df['초당매도수량'],     pen=(20 , 50,150),name='초당매도수량')
-
-        p1_8.plot(x=xValue, y=df['초당매수대금평균'], pen=(200, 50, 50),name='초당매수대금평균')
-        p1_8.plot(x=xValue, y=df['초당매수대금평균최고'], pen=y_dot,name='초당매수대금평균최고')
-        p1_8.plot(x=xValue, y=df['초당매도대금평균'], pen=(120,200,200),name='초당매도대금평균')
-        p1_8.plot(x=xValue, y=df['초당거래대금평균'],     pen=(100, 50, 50),name='초당거래대금평균')
-
-        p1_9.plot(x=xValue, y=df['매수총잔량평균'], pen=(200, 50, 50),name='매수총잔량평균')
-        p1_9.plot(x=xValue, y=df['매도총잔량평균'], pen=(120,200,200),fillLevel=int(edit4), brush=(50,50,200,50),name='매도총잔량평균')
-        p1_9.plot(x=xValue, y=df['매도총잔량평균최고'], pen=y_dot,name='매도총잔량평균최고')
-        p1_9.plot(x=xValue, y=df['매수총잔량평균최저'], pen=w_dot,name='매수총잔량평균최저')
-        p1_9.plot(x=xValue, y=df['매도총잔량평균최저'], pen=g_dot,name='매도총잔량평균최저')
-
-
-        p1_10.plot(x=xValue, y=df['고저평균대비등락율'], pen=(242,203, 95),fillLevel=int(edit5), brush=(50,50,200,50),name='고저평균대비등락율')
+        # p1_7.plot(x=xValue, y=df['초당매수수량'],     pen=(152, 20, 20),name='초당매수수량')
+        # p1_7.plot(x=xValue, y=df['초당매도수량'],     pen=(20 , 50,150),name='초당매도수량')
+        #
+        # p1_8.plot(x=xValue, y=df['초당매수대금평균'], pen=(200, 50, 50),name='초당매수대금평균')
+        # p1_8.plot(x=xValue, y=df['초당매수대금평균최고'], pen=y_dot,name='초당매수대금평균최고')
+        # p1_8.plot(x=xValue, y=df['초당매도대금평균'], pen=(120,200,200),name='초당매도대금평균')
+        # p1_8.plot(x=xValue, y=df['초당거래대금평균'],     pen=(100, 50, 50),name='초당거래대금평균')
+        #
+        # p1_9.plot(x=xValue, y=df['매수총잔량평균'], pen=(200, 50, 50),name='매수총잔량평균')
+        # p1_9.plot(x=xValue, y=df['매도총잔량평균'], pen=(120,200,200),fillLevel=int(edit4), brush=(50,50,200,50),name='매도총잔량평균')
+        # p1_9.plot(x=xValue, y=df['매도총잔량평균최고'], pen=y_dot,name='매도총잔량평균최고')
+        # p1_9.plot(x=xValue, y=df['매수총잔량평균최저'], pen=w_dot,name='매수총잔량평균최저')
+        # p1_9.plot(x=xValue, y=df['매도총잔량평균최저'], pen=g_dot,name='매도총잔량평균최저')
+        #
+        #
+        # p1_10.plot(x=xValue, y=df['고저평균대비등락율'], pen=(242,203, 95),fillLevel=int(edit5), brush=(50,50,200,50),name='고저평균대비등락율')
         # p1_10.plot(x=xValue, y=df['매수호가1'], pen=(255,  0,  0),name='매수호가1')
         # p1_10.plot(x=xValue, y=df['매수호가2'], pen=(255, 94,  0),name='매수호가2')
         # p1_10.plot(x=xValue, y=df['매도호가1'], pen=(  1,  0,255),name='매도호가1')
         # p1_10.plot(x=xValue, y=df['매도호가2'], pen=( 95,  0,255),name='매도호가2')
 
 
-        p1_11.plot(x=xValue, y=df['매수잔량1'], pen=(152, 20, 20),name='매수잔량1')
-        p1_11.plot(x=xValue, y=df['매도잔량1'], pen=(20, 50, 150),name='매도잔량1')
-        p1_11.plot(x=xValue, y=df['매수잔량1평균'], pen=(242, 203, 95), name='매수잔량1평균')
-        p1_11.plot(x=xValue, y=df['매도잔량1평균'], pen=(92, 210, 229), name='매도잔량1평균')
-        p1_11.plot(x=xValue, y=df['매도잔량1평균최고'], pen=(y_dot), name='매도잔량1평균최고')
-
-        p1_12.plot(x=xValue, y=df['매수잔량2'], pen=(152, 20, 20),name='매수잔량2')
-        p1_12.plot(x=xValue, y=df['매도잔량2'], pen=(20, 50, 150),name='매도잔량2')
-        p1_12.plot(x=xValue, y=df['매수잔량2평균'], pen=(242, 203, 95),name='매수잔량2평균')
-        p1_12.plot(x=xValue, y=df['매도잔량2평균'], pen=(92, 210, 229),name='매도잔량2평균')
-        p1_12.plot(x=xValue, y=df['매도잔량2평균최고'], pen=(y_dot), name='매도잔량2평균최고')
-
+        # p1_11.plot(x=xValue, y=df['매수잔량1'], pen=(152, 20, 20),name='매수잔량1')
+        # p1_11.plot(x=xValue, y=df['매도잔량1'], pen=(20, 50, 150),name='매도잔량1')
+        # p1_11.plot(x=xValue, y=df['매수잔량1평균'], pen=(242, 203, 95), name='매수잔량1평균')
+        # p1_11.plot(x=xValue, y=df['매도잔량1평균'], pen=(92, 210, 229), name='매도잔량1평균')
+        # p1_11.plot(x=xValue, y=df['매도잔량1평균최고'], pen=(y_dot), name='매도잔량1평균최고')
+        #
+        # p1_12.plot(x=xValue, y=df['매수잔량2'], pen=(152, 20, 20),name='매수잔량2')
+        # p1_12.plot(x=xValue, y=df['매도잔량2'], pen=(20, 50, 150),name='매도잔량2')
+        # p1_12.plot(x=xValue, y=df['매수잔량2평균'], pen=(242, 203, 95),name='매수잔량2평균')
+        # p1_12.plot(x=xValue, y=df['매도잔량2평균'], pen=(92, 210, 229),name='매도잔량2평균')
+        # p1_12.plot(x=xValue, y=df['매도잔량2평균최고'], pen=(y_dot), name='매도잔량2평균최고')
+        #
         p2_1.plot(x=xValue, y=df['이평5'], pen=(120, 200, 200), name='이평5')
         p2_1.plot(x=xValue, y=df['이평60'], pen=(120, 150, 150), name='이평60')
         p2_1.plot(x=xValue, y=df['이평60마지' ], pen=y_dot,name='이평60마지')
         p2_1.plot(x=xValue, y=df['이평300'], pen=(128, 65, 217), name='이평300')
         p2_1.plot(x=xValue, y=df['이평300마지' ], pen=g_dot,name='이평300마지')
         p2_1.plot(x=xValue, y=df['이평1200'], pen=(120, 50, 50), name='이평1200')
-        p2_1.plot(x=xValue, y=df['시가'], pen=r_dash, name='시가')
-        p2_1.plot(x=xValue, y=df['고가'], pen=r_dash, name='고가')
-        p2_1.plot(x=xValue, y=df['저가'], pen=(0, 51, 153), name='저가')
+        p2_1.plot(x=xValue, y=df['open'], pen=r_dash, name='open')
+        p2_1.plot(x=xValue, y=df['high'], pen=r_dash, name='high')
+        p2_1.plot(x=xValue, y=df['low'], pen=(0, 51, 153), name='low')
         p2_1.plot(x=xValue, y=df['이평'], pen=(204, 114, 61), name='이평')
-        p2_1.plot(x=xValue, y=df['현재가'], pen=(200, 50, 50), name='가격')
+        p2_1.plot(x=xValue, y=df['close'], pen=(200, 50, 50), name='close')
         p2_1.plot(x=buy_index, y=buy_price, pen=None, symbolBrush=(200, 0, 0), symbolPen='w', symbol='t', symbolSize=10, name="진입")  # 마커
         p2_1.plot(x=sell_index, y=sell_price, pen=None, symbolBrush=(0, 0, 200), symbolPen='w', symbol='t1', symbolSize=10, name="청산")  # 마커
         # lr = pg.LinearRegionItem([50, 100])
         # lr.setZValue(-1)
         # p1_1.addItem(lr)
 
-        p2_2.plot(x=xValue, y=df['체결강도'], pen=(200, 50, 50), fillLevel=int(edit2), brush=(50, 50, 200, 50), name='체결강도')
-        p2_2.plot(x=xValue, y=df['체결강도평균'], pen=(204, 114, 61), name='체결강도평균')
-        p2_2.plot(x=xValue, y=df['체결강도최고'], pen=y_dot, name='체결강도최고')
-        p2_2.plot(x=xValue, y=df['체결강도최저'], pen=g_dot, name='체결강도최저')
+        # p2_2.plot(x=xValue, y=df['체결강도'], pen=(200, 50, 50), fillLevel=int(edit2), brush=(50, 50, 200, 50), name='체결강도')
+        # p2_2.plot(x=xValue, y=df['체결강도평균'], pen=(204, 114, 61), name='체결강도평균')
+        # p2_2.plot(x=xValue, y=df['체결강도최고'], pen=y_dot, name='체결강도최고')
+        # p2_2.plot(x=xValue, y=df['체결강도최저'], pen=g_dot, name='체결강도최저')
         # p2_2.plot(x=xValue, y=df['체결강도평균마지+'], pen=g_dash, name='체결강도평균마지+')
         # p2_2.plot(x=xValue, y=df['체결강도평균마지-'], pen=g_dash, name='체결강도평균마지-')
 
         # p1_3.plot(x=xValue, y=df['체결강도'], pen=(50, 100, 50),name='체결강도')
-        p2_3.plot(x=xValue, y=df['체강차체강평균'], pen=(152, 20, 20), name='체강-체강평균')
-        p2_3.plot(x=xValue, y=df['체강차체강평균최저'], pen=g_dot, name='체강-체강평균(최저)')
-        p2_3.plot(x=xValue, y=df['체강차체강평균최고'], pen=y_dot, name='체강-체강평균(최고)')
+        # p2_3.plot(x=xValue, y=df['체강차체강평균'], pen=(152, 20, 20), name='체강-체강평균')
+        # p2_3.plot(x=xValue, y=df['체강차체강평균최저'], pen=g_dot, name='체강-체강평균(최저)')
+        # p2_3.plot(x=xValue, y=df['체강차체강평균최고'], pen=y_dot, name='체강-체강평균(최고)')
 
-        p2_4.plot(x=xDate, y=df['당일거래대금'], pen='c', fillLevel=int(edit3), brush=(50, 50, 200, 50), name='당일거래대금')
+        # p2_4.plot(x=xDate, y=df['당일거래대금'], pen='c', fillLevel=int(edit3), brush=(50, 50, 200, 50), name='당일거래대금')
 
         # p2_5.plot(x=xValue, y=df['초당거래대금'], pen=(50, 50, 200),name='초당거래대금')
         # p2_5.plot(x=xValue, y=df['초당거래대금변동'], pen=(50, 50, 200),name='초당거래대금변동')
 
-        p2_5.plot(x=xValue, y=df['체결강도각도'], pen=(152, 20, 20), name='체결강도각도')
+        # p2_5.plot(x=xValue, y=df['체결강도각도'], pen=(152, 20, 20), name='체결강도각도')
         # p2_5.plot(x=xValue, y=df['매도잔량1'], pen=(20, 50, 150), name='매도잔량1')
         # p2_5.plot(x=xValue, y=df['매수잔량1평균'], pen=(242, 203, 95), name='매수잔량1평균')
         # p2_5.plot(x=xValue, y=df['매도잔량1평균'], pen=(92, 210, 229), name='매도잔량1평균')
         # p2_5.plot(x=xValue, y=df['매도잔량1평균최고'], pen=(y_dot), name='매도잔량1평균최고')
 
-        p2_6.plot(x=xValue, y=df['체결강도평균각도']-df['체강차체강평균'], pen=(152, 20, 20), name='체결강도평균각도')
+        # p2_6.plot(x=xValue, y=df['체결강도평균각도']-df['체강차체강평균'], pen=(152, 20, 20), name='체결강도평균각도')
         # p2_6.plot(x=xValue, y=df['체결강도평균각도'], pen=(152, 20, 20), name='체결강도평균각도')
         # p2_6.plot(x=xValue, y=df['매도잔량2'], pen=(20, 50, 150), name='매도잔량2')
         # p2_6.plot(x=xValue, y=df['매수잔량2평균'], pen=(242, 203, 95), name='매수잔량2평균')
         # p2_6.plot(x=xValue, y=df['매도잔량2평균'], pen=(92, 210, 229), name='매도잔량2평균')
         # p2_6.plot(x=xValue, y=df['매도잔량2평균최고'], pen=(y_dot), name='매도잔량2평균최고')
 
-        p2_7.plot(x=xValue, y=df['초당매수수량'], pen=(152, 20, 20), name='초당매수수량')
-        p2_7.plot(x=xValue, y=df['초당매도수량'], pen=(20, 50, 150), name='초당매도수량')
-
-        p2_8.plot(x=xValue, y=df['초당매수대금평균'], pen=(200, 50, 50), name='초당매수대금평균')
-        p2_8.plot(x=xValue, y=df['초당매수대금평균최고'], pen=y_dot, name='초당매수대금평균최고')
-        p2_8.plot(x=xValue, y=df['초당매도대금평균'], pen=(120, 200, 200), name='초당매도대금평균')
-        p2_8.plot(x=xValue, y=df['초당거래대금평균'], pen=(100, 50, 50), name='초당거래대금평균')
-
-        p2_9.plot(x=xValue, y=df['매수총잔량평균'], pen=(200, 50, 50), name='매수총잔량평균')
-        p2_9.plot(x=xValue, y=df['매도총잔량평균'], pen=(120, 200, 200), name='매도총잔량평균')
-        p2_9.plot(x=xValue, y=df['매도총잔량평균최고'], pen=y_dot, name='매도총잔량평균최고')
-        p2_9.plot(x=xValue, y=df['매수총잔량평균최저'], pen=w_dot, name='매수총잔량평균최저')
-        p2_9.plot(x=xValue, y=df['매도총잔량평균최저'], pen=g_dot, name='매도총잔량평균최저')
-
-        p2_10.plot(x=xValue, y=df['매수호가1'], pen=(255, 0, 0), name='매수호가1')
-        p2_10.plot(x=xValue, y=df['매수호가2'], pen=(255, 94, 0), name='매수호가2')
-        p2_10.plot(x=xValue, y=df['매도호가1'], pen=(1, 0, 255), name='매도호가1')
-        p2_10.plot(x=xValue, y=df['매도호가2'], pen=(95, 0, 255), name='매도호가2')
-
-        p2_11.plot(x=xValue, y=df['등락율'], pen=(0, 250, 0),name='등락율')
+        # p2_7.plot(x=xValue, y=df['초당매수수량'], pen=(152, 20, 20), name='초당매수수량')
+        # p2_7.plot(x=xValue, y=df['초당매도수량'], pen=(20, 50, 150), name='초당매도수량')
+        #
+        # p2_8.plot(x=xValue, y=df['초당매수대금평균'], pen=(200, 50, 50), name='초당매수대금평균')
+        # p2_8.plot(x=xValue, y=df['초당매수대금평균최고'], pen=y_dot, name='초당매수대금평균최고')
+        # p2_8.plot(x=xValue, y=df['초당매도대금평균'], pen=(120, 200, 200), name='초당매도대금평균')
+        # p2_8.plot(x=xValue, y=df['초당거래대금평균'], pen=(100, 50, 50), name='초당거래대금평균')
+        #
+        # p2_9.plot(x=xValue, y=df['매수총잔량평균'], pen=(200, 50, 50), name='매수총잔량평균')
+        # p2_9.plot(x=xValue, y=df['매도총잔량평균'], pen=(120, 200, 200), name='매도총잔량평균')
+        # p2_9.plot(x=xValue, y=df['매도총잔량평균최고'], pen=y_dot, name='매도총잔량평균최고')
+        # p2_9.plot(x=xValue, y=df['매수총잔량평균최저'], pen=w_dot, name='매수총잔량평균최저')
+        # p2_9.plot(x=xValue, y=df['매도총잔량평균최저'], pen=g_dot, name='매도총잔량평균최저')
+        #
+        # p2_10.plot(x=xValue, y=df['매수호가1'], pen=(255, 0, 0), name='매수호가1')
+        # p2_10.plot(x=xValue, y=df['매수호가2'], pen=(255, 94, 0), name='매수호가2')
+        # p2_10.plot(x=xValue, y=df['매도호가1'], pen=(1, 0, 255), name='매도호가1')
+        # p2_10.plot(x=xValue, y=df['매도호가2'], pen=(95, 0, 255), name='매도호가2')
+        #
+        # p2_11.plot(x=xValue, y=df['등락율'], pen=(0, 250, 0),name='등락율')
 
         # p2_6.plot(x=xValue, y=df['거래대금각도'], pen=(120, 200, 200), name='거래대금각도')
-        p2_12.plot(x=xValue, y=df['고저평균대비등락율'], pen=(242, 203, 95), fillLevel=int(edit5), brush=(50, 50, 200, 50), name='고저평균대비등락율')
+        # p2_12.plot(x=xValue, y=df['고저평균대비등락율'], pen=(242, 203, 95), fillLevel=int(edit5), brush=(50, 50, 200, 50), name='고저평균대비등락율')
         # p1_6.plot(x=xValue, y=df['초당거래대금평균120'],  pen=(128, 65,217), name='초당거래대금평균120')
 
         crosshair1(main_pg=p1_1, sub_pg1=p1_2, sub_pg2=p1_3,sub_pg3=p1_4,sub_pg4=p1_5,sub_pg5=p1_6,sub_pg6=p1_7,sub_pg7=p1_8,sub_pg8=p1_9,sub_pg9=p1_10,sub_pg10=p1_11,sub_pg11=p1_12)
@@ -1949,121 +1869,121 @@ def df_add(df,avg,ch_max):
     체결강도max = int(ch_max)
     체결강도min = 0
 
-    df.drop(df.loc[df['시가']<1].index, inplace=True) #시가가 1보다 작은 행은 결측으로 처리하여 삭제
-    df.loc[df["체결강도"] > 체결강도max, "체결강도"] = 체결강도max #체결강도가 체결강도max 넘어가는 값은 max 값 으로 변경
-    df.loc[df["체결강도"] < 체결강도min, "체결강도"] = 체결강도min #체결강도가 체결강도min 넘어가는 값은 max 값 으로 변경
+    df.drop(df.loc[df['open']<1].index, inplace=True) #시가가 1보다 작은 행은 결측으로 처리하여 삭제
+    # df.loc[df["체결강도"] > 체결강도max, "체결강도"] = 체결강도max #체결강도가 체결강도max 넘어가는 값은 max 값 으로 변경
+    # df.loc[df["체결강도"] < 체결강도min, "체결강도"] = 체결강도min #체결강도가 체결강도min 넘어가는 값은 max 값 으로 변경
 
-    df['이평'] = df['현재가'].rolling(window=avgtime).mean()
-    df['이평'] = df['이평'].fillna(np.nan)  # 이평 컬럼의 값이 nan일 경우 현재가로 대체
+    df['이평'] = df['close'].rolling(window=avgtime).mean()
+    df['이평'] = df['이평'].fillna(np.nan)  # 이평 컬럼의 값이 nan일 경우 close로 대체
     df['이평'] = df['이평'].round(3)
 
-    df['이평5'] = df['현재가'].rolling(window=5).mean()
+    df['이평5'] = df['close'].rolling(window=5).mean()
     df['이평5'] = df['이평5'].round(3)
-    # df['이평5'] = df['이평5'].fillna(np.nan)  # 이평 컬럼의 값이 nan일 경우 현재가로 대체
-    df['이평60'] = df['현재가'].rolling(window=60).mean()
+    # df['이평5'] = df['이평5'].fillna(np.nan)  # 이평 컬럼의 값이 nan일 경우 close로 대체
+    df['이평60'] = df['close'].rolling(window=60).mean()
     df['이평60'] = df['이평60'].round(3)
     df['이평60마지'] = df['이평60']*0.98
-    df['이평300'] = df['현재가'].rolling(window=300).mean()
+    df['이평300'] = df['close'].rolling(window=300).mean()
     df['이평300'] = df['이평300'].round(3)
     df['이평300마지'] = df['이평300']*0.98
-    df['이평1200'] = df['현재가'].rolling(window=1200).mean()
+    df['이평1200'] = df['close'].rolling(window=1200).mean()
     df['이평1200'] = df['이평1200'].round(3)
 
 
     # df['당일거래대금'] = df['당일거래대금'] / 100
-    df['고저평균대비등락율'] = (df['현재가'] / ((df['고가'] + df['저가']) / 2) - 1) * 100
+    df['고저평균대비등락율'] = (df['close'] / ((df['high'] + df['low']) / 2) - 1) * 100
     df['고저평균대비등락율'] = df['고저평균대비등락율'].round(2)
 
-    df['체결강도최저'] = df['체결강도'].rolling(window=avgtime).min()
-    df['체결강도최저'] = df['체결강도최저'].round(3)
+    # df['체결강도최저'] = df['체결강도'].rolling(window=avgtime).min()
+    # df['체결강도최저'] = df['체결강도최저'].round(3)
 
-    df['체결강도평균'] = df['체결강도'].rolling(window=avgtime).mean()
-    df['체결강도평균'] = df['체결강도평균'].round(3)
+    # df['체결강도평균'] = df['체결강도'].rolling(window=avgtime).mean()
+    # df['체결강도평균'] = df['체결강도평균'].round(3)
 
-    df['체강차체강평균'] = df['체결강도'] - df['체결강도평균']
-    df['체강차체강평균최저'] = (df['체결강도'] - df['체결강도평균']).rolling(window=avgtime).min()
-    df['체강차체강평균최고'] = (df['체결강도'] - df['체결강도평균']).rolling(window=avgtime).max()
+    # df['체강차체강평균'] = df['체결강도'] - df['체결강도평균']
+    # df['체강차체강평균최저'] = (df['체결강도'] - df['체결강도평균']).rolling(window=avgtime).min()
+    # df['체강차체강평균최고'] = (df['체결강도'] - df['체결강도평균']).rolling(window=avgtime).max()
 
-    df['체결강도평균120'] = df['체결강도'].rolling(window=120).mean()
-    df['체결강도평균120'] = df['체결강도평균120'].round(3)
+    # df['체결강도평균120'] = df['체결강도'].rolling(window=120).mean()
+    # df['체결강도평균120'] = df['체결강도평균120'].round(3)
 
-    df['체결강도평균마지+'] = df['체결강도평균'] *1.05
+    # df['체결강도평균마지+'] = df['체결강도평균'] *1.05
 
-    df['체결강도평균마지-'] = df['체결강도평균'] *0.95
+    # df['체결강도평균마지-'] = df['체결강도평균'] *0.95
 
-    df['체결강도최고'] = df['체결강도'].rolling(window=avgtime).max()
-    df['체결강도최고'] = df['체결강도최고'].round(3)
+    # df['체결강도최고'] = df['체결강도'].rolling(window=avgtime).max()
+    # df['체결강도최고'] = df['체결강도최고'].round(3)
 
     거래대금max = 3
     거래대금min =-3
     # df['직전당일거래대금'] = df['당일거래대금'].shift(1)
-    df['초당거래대금'] = df['당일거래대금'] - df['당일거래대금'].shift(1)
-    df['초당거래대금'].iloc[0] = 0  # 초반 튀는값 잡기위해
-
-    df['초당거래대금평균'] = df['초당거래대금'].rolling(window=avgtime).mean()
-    df['초당거래대금평균'] = df['초당거래대금평균'].round(3)
-    # df.loc[df["초당거래대금평균"] > 거래대금max, "초당거래대금평균"] = 거래대금max
-    # df.loc[df["초당거래대금평균"] < 거래대금min, "초당거래대금평균"] = 거래대금min
-
-    df['직전초당거래대금'] = df['초당거래대금'].shift(1)
-    df['초당거래대금변동'] = (df['직전초당거래대금'] - df['초당거래대금'])
-    # df.loc[df["초당거래대금변동"] > 거래대금max, "초당거래대금변동"] = 거래대금max
-    # df.loc[df["초당거래대금변동"] < 거래대금min, "초당거래대금변동"] = 거래대금min
-
-    df['초당거래대금변동절대'] = abs(df['직전초당거래대금'] - df['초당거래대금'])
-    df['초당거래대금변동평균'] = df['초당거래대금변동절대'].rolling(window=avgtime).mean()
-    df['초당거래대금변동평균'] = df['초당거래대금변동평균'].round(3)
-    # df.loc[df["초당거래대금변동절대"] > 거래대금max, "초당거래대금변동절대"] = 거래대금max
-    # df.loc[df["초당거래대금변동절대"] < 거래대금min, "초당거래대금변동절대"] = 거래대금min
-
-
-    df['초당거래대금평균최고'] = df['초당거래대금평균'].rolling(window=avgtime).max()
-    df['초당거래대금평균최고'] = df['초당거래대금평균최고'].round(3)
-    df['초당거래대금평균최고마지'] = df['초당거래대금평균최고']*0.9
-    # df.loc[df["초당거래대금평균최고"] > 거래대금max, "초당거래대금평균최고"] = 거래대금max
-    # df.loc[df["초당거래대금평균최고"] < 거래대금min, "초당거래대금평균최고"] = 거래대금min
-    df['초대금평균차초대금평균최고'] = abs(df['초당거래대금평균'] - df['초당거래대금평균최고'])
-
-    df['초당거래대금평균60'] = df['직전초당거래대금'].rolling(window=60).mean()
-    df['초당거래대금평균60'] = df['초당거래대금평균60'].round(3)
-
-    df['초당거래대금평균120'] = df['직전초당거래대금'].rolling(window=120).mean()
-    df['초당거래대금평균120'] = df['초당거래대금평균120'].round(3)
-
-    df['거래대금각도'] = np.arctan((df['당일거래대금']-df['당일거래대금'].shift(1))/1000) * 180 / np.pi
-    df['체결강도각도'] = np.arctan((df['체결강도']-df['체결강도'].shift(1))) * 180 / np.pi
-    df['체결강도평균각도'] = np.arctan((df['체결강도평균']-df['체결강도평균'].shift(1))) * 180 / np.pi
-
-    df['초당매수대금'] = df['현재가'] * df['초당매수수량'] / 1000000
-    df['초당매도대금'] = df['현재가'] * df['초당매도수량'] / 1000000
-
-    df['초당매수대금평균'] = df['초당매수대금'].rolling(window=avgtime).mean()
-    df['초당매수대금평균'] = df['초당매수대금평균'].round(3)
-
-    df['초당매도대금평균'] = df['초당매도대금'].rolling(window=avgtime).mean()
-    df['초당매도대금평균'] = df['초당매도대금평균'].round(3)
-
-    df['초당매수대금평균최고'] = df['초당매수대금평균'].rolling(window=avgtime).max()
-    df['초당매수대금평균최고'] = df['초당매수대금평균최고'].round(3)
-
-    df['초당매도대금평균최고'] = df['초당매도대금평균'].rolling(window=avgtime).max()
-    df['초당매도대금평균최고'] = df['초당매도대금평균최고'].round(3)
-
-    df['매수총잔량평균'] = df['매수총잔량'].rolling(window=avgtime).mean().round(3)
-    df['매도총잔량평균'] = df['매도총잔량'].rolling(window=avgtime).mean().round(3)
-    df['매수총잔량평균최저'] = df['매수총잔량평균'].rolling(window=avgtime).min().round(3)
-    df['매도총잔량평균최고'] = df['매도총잔량평균'].rolling(window=avgtime).max().round(3)
-    df['매도총잔량평균최저'] = df['매도총잔량평균'].rolling(window=avgtime).min().round(3)
-    df['매수총잔금평균'] = df['매수총잔량평균']*df['현재가']/1000000
-    df['매도총잔금평균'] = df['매도총잔량평균']*df['현재가']/1000000
-    # df['매수잔금1']
-    df['매수잔량1평균'] = df['매수잔량1'].rolling(window=avgtime).mean().round(3)
-    df['매도잔량1평균'] = df['매도잔량1'].rolling(window=avgtime).mean().round(3)
-    df['매도잔량1평균최고'] = df['매도잔량1평균'].rolling(window=avgtime).max()
-
-    df['매수잔량2평균'] = df['매수잔량2'].rolling(window=avgtime).mean().round(3)
-    df['매도잔량2평균'] = df['매도잔량2'].rolling(window=avgtime).mean().round(3)
-    df['매도잔량2평균최고'] = df['매도잔량2평균'].rolling(window=avgtime).max()
+    # df['초당거래대금'] = df['당일거래대금'] - df['당일거래대금'].shift(1)
+    # df['초당거래대금'].iloc[0] = 0  # 초반 튀는값 잡기위해
+    #
+    # df['초당거래대금평균'] = df['초당거래대금'].rolling(window=avgtime).mean()
+    # df['초당거래대금평균'] = df['초당거래대금평균'].round(3)
+    # # df.loc[df["초당거래대금평균"] > 거래대금max, "초당거래대금평균"] = 거래대금max
+    # # df.loc[df["초당거래대금평균"] < 거래대금min, "초당거래대금평균"] = 거래대금min
+    #
+    # df['직전초당거래대금'] = df['초당거래대금'].shift(1)
+    # df['초당거래대금변동'] = (df['직전초당거래대금'] - df['초당거래대금'])
+    # # df.loc[df["초당거래대금변동"] > 거래대금max, "초당거래대금변동"] = 거래대금max
+    # # df.loc[df["초당거래대금변동"] < 거래대금min, "초당거래대금변동"] = 거래대금min
+    #
+    # df['초당거래대금변동절대'] = abs(df['직전초당거래대금'] - df['초당거래대금'])
+    # df['초당거래대금변동평균'] = df['초당거래대금변동절대'].rolling(window=avgtime).mean()
+    # df['초당거래대금변동평균'] = df['초당거래대금변동평균'].round(3)
+    # # df.loc[df["초당거래대금변동절대"] > 거래대금max, "초당거래대금변동절대"] = 거래대금max
+    # # df.loc[df["초당거래대금변동절대"] < 거래대금min, "초당거래대금변동절대"] = 거래대금min
+    #
+    #
+    # df['초당거래대금평균최고'] = df['초당거래대금평균'].rolling(window=avgtime).max()
+    # df['초당거래대금평균최고'] = df['초당거래대금평균최고'].round(3)
+    # df['초당거래대금평균최고마지'] = df['초당거래대금평균최고']*0.9
+    # # df.loc[df["초당거래대금평균최고"] > 거래대금max, "초당거래대금평균최고"] = 거래대금max
+    # # df.loc[df["초당거래대금평균최고"] < 거래대금min, "초당거래대금평균최고"] = 거래대금min
+    # df['초대금평균차초대금평균최고'] = abs(df['초당거래대금평균'] - df['초당거래대금평균최고'])
+    #
+    # df['초당거래대금평균60'] = df['직전초당거래대금'].rolling(window=60).mean()
+    # df['초당거래대금평균60'] = df['초당거래대금평균60'].round(3)
+    #
+    # df['초당거래대금평균120'] = df['직전초당거래대금'].rolling(window=120).mean()
+    # df['초당거래대금평균120'] = df['초당거래대금평균120'].round(3)
+    #
+    # df['거래대금각도'] = np.arctan((df['당일거래대금']-df['당일거래대금'].shift(1))/1000) * 180 / np.pi
+    # df['체결강도각도'] = np.arctan((df['체결강도']-df['체결강도'].shift(1))) * 180 / np.pi
+    # df['체결강도평균각도'] = np.arctan((df['체결강도평균']-df['체결강도평균'].shift(1))) * 180 / np.pi
+    #
+    # df['초당매수대금'] = df['현재가'] * df['초당매수수량'] / 1000000
+    # df['초당매도대금'] = df['현재가'] * df['초당매도수량'] / 1000000
+    #
+    # df['초당매수대금평균'] = df['초당매수대금'].rolling(window=avgtime).mean()
+    # df['초당매수대금평균'] = df['초당매수대금평균'].round(3)
+    #
+    # df['초당매도대금평균'] = df['초당매도대금'].rolling(window=avgtime).mean()
+    # df['초당매도대금평균'] = df['초당매도대금평균'].round(3)
+    #
+    # df['초당매수대금평균최고'] = df['초당매수대금평균'].rolling(window=avgtime).max()
+    # df['초당매수대금평균최고'] = df['초당매수대금평균최고'].round(3)
+    #
+    # df['초당매도대금평균최고'] = df['초당매도대금평균'].rolling(window=avgtime).max()
+    # df['초당매도대금평균최고'] = df['초당매도대금평균최고'].round(3)
+    #
+    # df['매수총잔량평균'] = df['매수총잔량'].rolling(window=avgtime).mean().round(3)
+    # df['매도총잔량평균'] = df['매도총잔량'].rolling(window=avgtime).mean().round(3)
+    # df['매수총잔량평균최저'] = df['매수총잔량평균'].rolling(window=avgtime).min().round(3)
+    # df['매도총잔량평균최고'] = df['매도총잔량평균'].rolling(window=avgtime).max().round(3)
+    # df['매도총잔량평균최저'] = df['매도총잔량평균'].rolling(window=avgtime).min().round(3)
+    # df['매수총잔금평균'] = df['매수총잔량평균']*df['현재가']/1000000
+    # df['매도총잔금평균'] = df['매도총잔량평균']*df['현재가']/1000000
+    # # df['매수잔금1']
+    # df['매수잔량1평균'] = df['매수잔량1'].rolling(window=avgtime).mean().round(3)
+    # df['매도잔량1평균'] = df['매도잔량1'].rolling(window=avgtime).mean().round(3)
+    # df['매도잔량1평균최고'] = df['매도잔량1평균'].rolling(window=avgtime).max()
+    #
+    # df['매수잔량2평균'] = df['매수잔량2'].rolling(window=avgtime).mean().round(3)
+    # df['매도잔량2평균'] = df['매도잔량2'].rolling(window=avgtime).mean().round(3)
+    # df['매도잔량2평균최고'] = df['매도잔량2평균'].rolling(window=avgtime).max()
 
 
     df['매수가'] = np.nan
@@ -2071,15 +1991,17 @@ def df_add(df,avg,ch_max):
     # df.to_csv(path+'/database/' + stock_name + ".csv", header=True, index=True, encoding='utf-8-sig')
     return df
 if __name__ == '__main__':
-    path = "D:/tele_bot"
-    stock_tick_file = path + '/database/stock_tick_back.db'
-    back_file = path + '/database/backtest.db'
-    stock_list2 = db_stock_list()
-    start = '09:00'
-    end = '09:30'
+    path = "D:/tele_bot/"
+    macro_file = path + 'macroeconomics.db'
+    KRX_file = path + 'KRX.db'
+    US_stock_file = path + 'US_stock.db'
+    # get_table_list(database_file)
+    start = '20180101'
+    # end = '20220101'
+    end = 'now'
     delay = 20000 #차멍 딜레이시간 ms(밀리세컨)
-    # qtable_back_list('vj')
-
+    # qtable_moneytop('macroeconomics.db')
+    #
     app = QApplication(sys.argv)
     w = Window()
     w.show()

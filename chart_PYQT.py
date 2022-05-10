@@ -1708,18 +1708,19 @@ class Chart(QWidget):
         w_dot = pg.mkPen(color='w', width=1, style=QtCore.Qt.DotLine)
         r_dash = pg.mkPen(color='r', width=1, style=QtCore.Qt.DashLine)
         g_dash = pg.mkPen(color=[0,130,153], width=1.2, style=QtCore.Qt.DashLine)
-        print(df)
-        p1_1.plot(x=xValue, y=df['이평5' ], pen=(120,200,200),name='이평5')
-        p1_1.plot(x=xValue, y=df['이평60' ], pen=(120,150,150),name='이평60')
-        # p1_1.plot(x=xValue, y=df['이평60마지' ], pen=y_dot,name='이평60마지')
-        p1_1.plot(x=xValue, y=df['이평300' ], pen=(128, 65,217),name='이평300')
-        # p1_1.plot(x=xValue, y=df['이평300마지' ], pen=g_dot,name='이평300마지')
-        p1_1.plot(x=xValue, y=df['이평1200' ], pen=(120, 50, 50),name='이평1200')
-        p1_1.plot(x=xValue, y=df['open'  ], pen=r_dash,name='open')
-        p1_1.plot(x=xValue, y=df['high'  ], pen=g_dash,name='high')
-        p1_1.plot(x=xValue, y=df['low'  ], pen=(  0, 51,153),name='low')
+        print(df['ma5'])
+        print(xValue)
+        # p1_1.plot(x=xValue, y=df['ma5'], pen=(120,200,200),name='ma5')
+        # p1_1.plot(x=xValue, y=df['ma60'], pen=(120,150,150),name='ma60')
+        # p1_1.plot(x=xValue, y=df['이평60마지'], pen=y_dot,name='이평60마지')
+        # p1_1.plot(x=xValue, y=df['ma300'], pen=(128, 65,217),name='ma300')
+        # p1_1.plot(x=xValue, y=df['이평300마지'], pen=g_dot,name='이평300마지')
+        # p1_1.plot(x=xValue, y=df['이평1200'], pen=(120, 50, 50),name='이평1200')
+        # p1_1.plot(x=xValue, y=df['open'], pen=r_dash,name='open')
+        # p1_1.plot(x=xValue, y=df['high'], pen=g_dash,name='high')
+        # p1_1.plot(x=xValue, y=df['low'], pen=(  0, 51,153),name='low')
         p1_1.plot(x=xValue, y=df['close'], pen=(200, 50, 50),name='close')
-        p1_1.plot(x=xValue, y=df['이평'  ], pen=(204,114, 61),name='이평')
+        p1_1.plot(x=xValue, y=df['이평'], pen=(204,114, 61),name='이평')
 
         p1_1.plot(x=buy_index, y=buy_price,   pen =None, symbolBrush =(200,  0,  0),symbolPen ='w', symbol='t' , symbolSize=10, name="진입") #마커
         p1_1.plot(x=sell_index, y=sell_price, pen =None, symbolBrush =(  0,  0,200),symbolPen ='w', symbol='t1', symbolSize=10, name="청산") #마커
@@ -1998,6 +1999,13 @@ if __name__ == '__main__':
     start = '20180101'
     # end = '20220101'
     end = 'now'
+    conn = sqlite3.connect(macro_file)
+    cursor = conn.cursor()
+    table = 'KRX100'
+    df = pd.read_sql("SELECT * FROM '" + table + "'", conn).set_index('index')
+    print(df)
+    quit()
+    df = df_time(df, start, end)
     delay = 20000 #차멍 딜레이시간 ms(밀리세컨)
     # qtable_moneytop('macroeconomics.db')
     #
