@@ -124,7 +124,7 @@ def renko_sma(df):
     df['renko1_40평균'] = df['renko1_40'].rolling(window=avgtime).mean().round(3)
     df['renko1_bricks'] = df['renko1_bricks'].rolling(window=avgtime).mean().round(3)
     return df
-def heikin_ashi(df,ticker):
+def heikin_ashi(df):
     heikin_ashi_df = pd.DataFrame(index=df.index.values, columns=['open', 'high', 'low', 'close'])
     heikin_ashi_df['close'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4
     for i in range(len(df)):
@@ -138,7 +138,7 @@ def heikin_ashi(df,ticker):
     # print(heikin_ashi_df)
     df = pd.concat([df, heikin_ashi_df], axis=1)
     return df
-def df_add(df,ticker):
+def df_add(df):
     avgtime = 30
     df['고저평균대비등락율'] = (df['close'] / ((df['high'] + df['low']) / 2) - 1) * 100
     df['고저평균대비등락율'] = df['고저평균대비등락율'].round(2)
@@ -153,7 +153,7 @@ def change_price(df,ticker):
     df['최고등락'] = (df['high']-df['low'])/df['low']*100
     df['등락'] = (df['close']-df['open'])/df['open']*100
     return df
-def sma(df,ticker):
+def sma(df):
     df['ma'] = round(talib.MA(df['close'], timeperiod=avgtime),1)
     df['ma5'] = round(talib.MA(df['close'], timeperiod=5),1)
     df['ma20'] = round(talib.MA(df['close'], timeperiod=20),1)
@@ -162,22 +162,22 @@ def sma(df,ticker):
     df['ma60마지'] = round(df['ma60']*0.98,1)
     df['ma300마지'] = round(df['ma300']*0.98,1)
     return df
-def CCI(df,ticker):
+def CCI(df):
     df['cci'] = talib.CCI(df['high'],df['low'],df['close'], timeperiod=14)
     return df
-def CMO(df,ticker):
+def CMO(df):
     df['cmo'] = talib.CMO(df['close'], timeperiod=14)
     return df
-def RSI(df,ticker):
+def RSI(df):
     df['rsi'] = round(talib.RSI(df['close'],timeperiod=14),1)
     df['rsi_upper'] = 70
     df['rsi_lower'] = 30
 
     return df
-def BBAND(df,ticker):
+def BBAND(df):
     df['band_upper'],df['band_middle'],df['band_lower'] = talib.BBANDS(df['close'],20,2)
     return df
-def ATR(df,ticker):
+def ATR(df):
     df['atr'] = talib.ATR(df['high'],df['low'],df['close'], timeperiod=14)
     return df
 

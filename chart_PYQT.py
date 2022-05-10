@@ -58,15 +58,15 @@ class Window(QWidget):
 
         #https://appia.tistory.com/276
         # https://hello-bryan.tistory.com/213
-        self.btn1 = QPushButton('stock_back')
+        self.btn1 = QPushButton('view_chart')
         self.btn1.clicked.connect(lambda: self.configureTable1(self.table1))
         self.btn2 = QPushButton('backtest')
         self.btn2.clicked.connect(lambda: self.configureTable2(self.table2))
         self.btn3 = QPushButton('backtest_최적화')
         self.btn3.clicked.connect(lambda: self.configureTable4(self.table4))
 
-        self.holic_btn1 = QPushButton('차멍 / 끄기')
-        self.holic_btn1.clicked.connect(lambda: self.holic_mt(delay))
+        self.holic_btn1 = QPushButton('차트보기')
+        self.holic_btn1.clicked.connect(lambda: self.holic_mt())
         self.holic_btn1.setCheckable(True)
 
         self.holic_btn2 = QPushButton('차멍 / 끄기')
@@ -110,6 +110,8 @@ class Window(QWidget):
         self.edit6.setText('500')
         self.lbl7 = QLabel('체결강도-체결강도평균')
         self.edit7.setText('5')
+
+
         # self.lbl_del = QLabel('백테삭제조건')
         # self.lbl_del_val = QLabel('백테삭제값')
         # self.btn_del = QPushButton('차멍 / 끄기')
@@ -168,10 +170,26 @@ class Window(QWidget):
         self.box_cuu = QHBoxLayout(self)
         self.box_ruu = QHBoxLayout(self)
 
+        self.lbl_chart1 = QLabel('chart 1')
+        self.edit_chart1_1_1 = QLineEdit(self)
+        self.edit_chart1_1_2 = QLineEdit(self)
+        self.edit_chart1_2_1 = QLineEdit(self)
+        self.edit_chart1_2_2 = QLineEdit(self)
+        self.edit_chart1_3_1 = QLineEdit(self)
+        self.grid_chart = QGridLayout(self)
+        self.grid_chart.setSpacing(10)
+        self.grid_chart.addWidget(self.lbl_chart1,0,0)
+        self.grid_chart.addWidget(self.edit_chart1_1_1,0,1)
+        self.grid_chart.addWidget(self.edit_chart1_1_2,0,2)
+        self.grid_chart.addWidget(self.edit_chart1_2_1,1,1)
+        self.grid_chart.addWidget(self.edit_chart1_2_2,1,2)
+        self.grid_chart.addWidget(self.edit_chart1_3_1,2,1)
+
+
         self.box_luu.addWidget(self.ch_mt_de)
         self.box_luu.addWidget(self.btn1)
         self.box_mt.addLayout(self.box_luu)
-        self.box_mt.addWidget(self.table1)
+        self.box_mt.addLayout(self.grid_chart)
         self.box_mt.addWidget(self.holic_btn1)
         self.box_cuu.addWidget(self.ch_c_cap)
         self.box_cuu.addWidget(self.ch_c_ohlcv)
@@ -259,36 +277,7 @@ class Window(QWidget):
         self.table5.cellDoubleClicked.connect(self.celldoubleclicked_event5)
         # self.table3.doubleClicked.connect(self.celldoubleclicked_event2)
 
-    def configureTable1(self, table):
-        # table.setSortingEnabled(False)
-        # table.clear()
-        if self.radio_ch1.isChecked():
-            self.file = macro_file
-        elif self.radio_ch2.isChecked():
-            self.file = KRX_file
-        elif self.radio_ch3.isChecked():
-            self.file = US_stock_file
-        self.df1 = qtable_moneytop(self.file)
-        table.setRowCount(len(self.df1.index))
-        table.setColumnCount(len(self.df1.columns))
-        header = table.horizontalHeader()# 컬럼내용에따라 길이 자동조절
-        for column in range(len(self.df1.columns)): #컬럼 생성
-            table.setHorizontalHeaderItem(column, QTableWidgetItem(self.df1.columns[column]))
-            header.setSectionResizeMode(column, QHeaderView.ResizeToContents) # 컬럼내용에따라 길이 자동조절
-        # for i in range(len(self.df1.index)): #인덱스 생성
-        #     table.setVerticalHeaderItem(i, QTableWidgetItem(str(self.df1.index[i])))
-        table.verticalHeader().setVisible(False) #인덱스 삭제
 
-        for row in range(len(self.df1.index)):
-            for column in range(len(self.df1.columns)):
-                val = self.df1.iloc[row, column]
-                if type(val) != str:
-                    val = val.item() #numpy.float 을 int로 변환
-                    # print(type(val))
-                it = QTableWidgetItem()
-                it.setData(Qt.DisplayRole, val) #정렬 시 문자형이 아닌 숫자크기로 바꿈
-                table.setItem(row, column, it)
-        # table.setSortingEnabled(True) #소팅한 상태로 로딩 시 데이터가 이상해져 맨 앞과 뒤에 추가
     def configureTable2(self, table):
         table.setSortingEnabled(False)
         table.clear()
@@ -411,20 +400,7 @@ class Window(QWidget):
         # table.horizontalHeader().setStretchLastSection(True)
         # table.verticalHeader().setStretchLastSection(True)
         table.setSortingEnabled(True) #소팅한 상태로 로딩 시 데이터가 이상해져 맨 앞과 뒤에 추가
-    def celldoubleclicked_event1(self):
-        row = self.table1.currentRow()
-        column = self.table1.currentColumn()
-        item = self.table1.item(row, 0)
-        stock_code = item.text()
-        date = self.table1.horizontalHeaderItem(column).text()
-        date = str(date)[0:4]
-        # stock_name = make_stock_name(stock_code)
-        df = get_data(stock_code, date,self.file)
-        df = df_add(df,self.edit1_t,self.edit6_t)
-        # View_Chart = self.select_chart()
-        self.chart = Chart(df, stock_code, date, self.edit2_t, self.edit3_t, self.edit4_t,self.edit5_t,self.edit7_t)
-        self.chart.setGeometry(0, 30, 3850, 1010)
-        self.chart.show()
+
     def celldoubleclicked_event2(self):
         self.plain_buy_stg.clear()
         self.plain_sell_stg.clear()
@@ -484,29 +460,8 @@ class Window(QWidget):
         self.chart = Chart(df, stock_name,stock_code, date,self.edit2_t,self.edit3_t,self.edit4_t,self.edit5_t,self.edit7_t)
         self.chart.setGeometry(0, 30, 3850, 1010)
         self.chart.show()
-    def holic_mt(self,delay):
-        col_num = self.df1.columns[2:].tolist()
-        row_num = self.df1.index.tolist()
-        for date in col_num:
-            for stock_code in row_num:
-                if self.df1.loc[stock_code, date] > 0: #머니탑에서 0이 아닌항목만 추출
-                    if self.holic_btn1.isChecked() == True:
-                        stock_name = make_stock_name(stock_code)
-                        df = get_data(stock_code, date, start, end, )
-                        df = df_add(df,self.edit1_t,self.edit6_t)
-                        # View_Chart = self.select_chart()
-                        self.holic_show_mt = Chart(df, stock_name, stock_code, date, self.edit2_t, self.edit3_t, self.edit4_t, self.edit5_t,self.edit7_t)
-                        self.holic_show_mt.setGeometry(0, 30, 3850, 1010)
-                        self.holic_show_mt.show()
-                        QTest.qWait(delay)
-                        self.holic_show_mt.close()
-                    elif self.holic_btn1.isChecked() == False:
-                        print(self.holic_btn1.isChecked())
-                        exit = True
-                        self.holic_show_mt.close()
-                        break
-            if exit == True:
-                break
+    def holic_mt(self):
+        =self.edit_chart1_1_1.text()
     def holic_back(self,delay):
         # print(df_back)
         # df_back.to_excel('table.xlsx')
@@ -591,7 +546,7 @@ def df_date(df,date):
     df['년도'] = df['날짜'].astype(str).str[:4]
     if (df['년도']==date).any(): #'날짜'컬럼에 date가 포함되는지 여부, all() 사용 시 -모든값이 date인지
         df = df[df.년도 == date]  # date변수와 일치하는 'date'컬럼 값 만 df에 저장
-        print(df)
+        # print(df)
     else:
         df = pd.DataFrame()
         print('일치하는 날짜 없음')
@@ -1500,32 +1455,32 @@ class Chart(QWidget):
         # p1_1 = self.win.addPlot(row=0, col=0,title=stock_name + date,axisItems={'bottom': pg.DateAxisItem()})
         # p1_2 = self.win.addPlot(row=1, col=0,title='체결강도',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
 
-        p1_1 = self.win1.addPlot(row=0, col=0,title=f'({stock_code}), {str(date)[:2]}/{str(date)[2:4]}',axisItems={'bottom': bottomAxis_1})
-        p1_2 = self.win1.addPlot(row=1, col=0,title='체결강도',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p1_3 = self.win1.addPlot(row=2, col=0,title='체결강도',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        # p1_4 = self.win1.addPlot(row=0, col=1,title='거래대금',axisItems={'bottom': bottomAxis_date_1})
-        p1_4 = self.win1.addPlot(row=0, col=1,title='거래대금',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p1_5 = self.win1.addPlot(row=1, col=1,title='거래대금/속도',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p1_6 = self.win1.addPlot(row=2, col=1,title='거래대금각도',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p1_7 = self.win1.addPlot(row=0, col=2,title='초당대금',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p1_8 = self.win1.addPlot(row=1, col=2,title='초당대금평균',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p1_9 = self.win1.addPlot(row=2, col=2,title='총잔량',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p1_10 = self.win1.addPlot(row=0, col=3,title='호가',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p1_11 = self.win1.addPlot(row=1, col=3,title='잔량1',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p1_12 = self.win1.addPlot(row=2, col=3,title='잔량2',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
+        p1_1  = self.win1.addPlot(row=0, col=0,title=f'{stock_code}',axisItems={'bottom': pg.DateAxisItem()})
+        p1_2  = self.win1.addPlot(row=1, col=0,title='체결강도',axisItems={'bottom': pg.DateAxisItem()})
+        p1_3  = self.win1.addPlot(row=2, col=0,title='체결강도/등락율',axisItems={'bottom': pg.DateAxisItem()})
+        p1_4  = self.win1.addPlot(row=0, col=1,title='거래대금',axisItems={'bottom': pg.DateAxisItem()})
+        p1_5  = self.win1.addPlot(row=1, col=1,title='거래대금/속도',axisItems={'bottom': pg.DateAxisItem()})
+        p1_6  = self.win1.addPlot(row=2, col=1,title='거래대금평균',axisItems={'bottom': pg.DateAxisItem()})
+        p1_7  = self.win1.addPlot(row=0, col=2,title='초당대금',axisItems={'bottom': pg.DateAxisItem()})
+        p1_8  = self.win1.addPlot(row=1, col=2,title='초당대금평균',axisItems={'bottom': pg.DateAxisItem()})
+        p1_9  = self.win1.addPlot(row=2, col=2,title='총잔량',axisItems={'bottom': pg.DateAxisItem()})
+        p1_10 = self.win1.addPlot(row=0, col=3,title='호가',axisItems={'bottom': pg.DateAxisItem()})
+        p1_11 = self.win1.addPlot(row=1, col=3,title='잔량1',axisItems={'bottom': pg.DateAxisItem()})
+        p1_12 = self.win1.addPlot(row=2, col=3,title='잔량2',axisItems={'bottom': pg.DateAxisItem()})
 
-        p2_1 = self.win2.addPlot(row=0, col=0, title=f'({stock_code}), {str(date)[:2]}/{str(date)[2:4]}',axisItems={'bottom': bottomAxis_2})
-        p2_2 = self.win2.addPlot(row=1, col=0, title='체결강도', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p2_3 = self.win2.addPlot(row=2, col=0, title='체결강도', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p2_4 = self.win2.addPlot(row=0, col=1, title='거래대금', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p2_5 = self.win2.addPlot(row=1, col=1, title='등락율', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p2_6 = self.win2.addPlot(row=2, col=1, title='고저평균대비등락율', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p2_7 = self.win2.addPlot(row=0, col=2, title='초당대금', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p2_8 = self.win2.addPlot(row=1, col=2, title='초당대금평균', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p2_9 = self.win2.addPlot(row=2, col=2, title='총잔량', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p2_10 = self.win2.addPlot(row=0, col=3, title='호가', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p2_11 = self.win2.addPlot(row=1, col=3, title='잔량1', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
-        p2_12 = self.win2.addPlot(row=2, col=3, title='잔량2', axisItems={'bottom': pg.AxisItem(orientation='bottom')})
+
+        p2_1  = self.win2.addPlot(row=0, col=0, title=f'{stock_code}',axisItems={'bottom': pg.DateAxisItem()})
+        p2_2  = self.win2.addPlot(row=1, col=0, title='체결강도', axisItems={'bottom': pg.DateAxisItem()})
+        p2_3  = self.win2.addPlot(row=2, col=0, title='체결강도', axisItems={'bottom': pg.DateAxisItem()})
+        p2_4  = self.win2.addPlot(row=0, col=1, title='거래대금', axisItems={'bottom': pg.DateAxisItem()})
+        p2_5  = self.win2.addPlot(row=1, col=1, title='등락율',   axisItems={'bottom': pg.DateAxisItem()})
+        p2_6  = self.win2.addPlot(row=2, col=1, title='고저평균대비등락율', axisItems={'bottom': pg.DateAxisItem()})
+        p2_7  = self.win2.addPlot(row=0, col=2, title='초당대금', axisItems={'bottom': pg.DateAxisItem()})
+        p2_8  = self.win2.addPlot(row=1, col=2, title='초당대금평균', axisItems={'bottom': pg.DateAxisItem()})
+        p2_9  = self.win2.addPlot(row=2, col=2, title='총잔량', axisItems={'bottom': pg.DateAxisItem()})
+        p2_10 = self.win2.addPlot(row=0, col=3, title='호가', axisItems={'bottom': pg.DateAxisItem()})
+        p2_11 = self.win2.addPlot(row=1, col=3, title='잔량1', axisItems={'bottom': pg.DateAxisItem()})
+        p2_12 = self.win2.addPlot(row=2, col=3, title='잔량2', axisItems={'bottom': pg.DateAxisItem()})
 
         p1_1.addLegend()
         p1_2.addLegend()
@@ -1685,6 +1640,10 @@ class Chart(QWidget):
         bottomAxis_date_1.setTicks(xtickts_date)
         bottomAxis_date_2.setTicks(xtickts_date)
 
+        df.index = pd.to_datetime(df.index, format='%Y%m%d')  # index를 df['index_time']컬럼의 datetime64 타입으로 저장 2022-01-05
+        xValue = [int(x.timestamp()) - 32400 for x in df.index]
+        print(df)
+
         # time = df['index_chart'].tolist()
         # xDict = dict(enumerate(time))
         # xValue = list(xDict.keys())
@@ -1708,19 +1667,17 @@ class Chart(QWidget):
         w_dot = pg.mkPen(color='w', width=1, style=QtCore.Qt.DotLine)
         r_dash = pg.mkPen(color='r', width=1, style=QtCore.Qt.DashLine)
         g_dash = pg.mkPen(color=[0,130,153], width=1.2, style=QtCore.Qt.DashLine)
-        print(df['ma5'])
-        print(xValue)
-        # p1_1.plot(x=xValue, y=df['ma5'], pen=(120,200,200),name='ma5')
-        # p1_1.plot(x=xValue, y=df['ma60'], pen=(120,150,150),name='ma60')
-        # p1_1.plot(x=xValue, y=df['이평60마지'], pen=y_dot,name='이평60마지')
-        # p1_1.plot(x=xValue, y=df['ma300'], pen=(128, 65,217),name='ma300')
-        # p1_1.plot(x=xValue, y=df['이평300마지'], pen=g_dot,name='이평300마지')
-        # p1_1.plot(x=xValue, y=df['이평1200'], pen=(120, 50, 50),name='이평1200')
-        # p1_1.plot(x=xValue, y=df['open'], pen=r_dash,name='open')
-        # p1_1.plot(x=xValue, y=df['high'], pen=g_dash,name='high')
-        # p1_1.plot(x=xValue, y=df['low'], pen=(  0, 51,153),name='low')
+        p1_1.plot(x=xValue, y=df['이평5' ], pen=(120,200,200),name='이평5')
+        p1_1.plot(x=xValue, y=df['이평60' ], pen=(120,150,150),name='이평60')
+        # p1_1.plot(x=xValue, y=df['이평60마지' ], pen=y_dot,name='이평60마지')
+        p1_1.plot(x=xValue, y=df['이평300' ], pen=(128, 65,217),name='이평300')
+        # p1_1.plot(x=xValue, y=df['이평300마지' ], pen=g_dot,name='이평300마지')
+        p1_1.plot(x=xValue, y=df['이평1200' ], pen=(120, 50, 50),name='이평1200')
+        p1_1.plot(x=xValue, y=df['open'  ], pen=r_dash,name='open')
+        p1_1.plot(x=xValue, y=df['high'  ], pen=g_dash,name='high')
+        p1_1.plot(x=xValue, y=df['low'  ], pen=(  0, 51,153),name='low')
         p1_1.plot(x=xValue, y=df['close'], pen=(200, 50, 50),name='close')
-        p1_1.plot(x=xValue, y=df['이평'], pen=(204,114, 61),name='이평')
+        p1_1.plot(x=xValue, y=df['이평'  ], pen=(204,114, 61),name='이평')
 
         p1_1.plot(x=buy_index, y=buy_price,   pen =None, symbolBrush =(200,  0,  0),symbolPen ='w', symbol='t' , symbolSize=10, name="진입") #마커
         p1_1.plot(x=sell_index, y=sell_price, pen =None, symbolBrush =(  0,  0,200),symbolPen ='w', symbol='t1', symbolSize=10, name="청산") #마커
@@ -1999,13 +1956,6 @@ if __name__ == '__main__':
     start = '20180101'
     # end = '20220101'
     end = 'now'
-    conn = sqlite3.connect(macro_file)
-    cursor = conn.cursor()
-    table = 'KRX100'
-    df = pd.read_sql("SELECT * FROM '" + table + "'", conn).set_index('index')
-    print(df)
-    quit()
-    df = df_time(df, start, end)
     delay = 20000 #차멍 딜레이시간 ms(밀리세컨)
     # qtable_moneytop('macroeconomics.db')
     #
