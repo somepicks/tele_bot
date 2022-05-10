@@ -66,7 +66,7 @@ class Window(QWidget):
         self.btn3.clicked.connect(lambda: self.configureTable4(self.table4))
 
         self.holic_btn1 = QPushButton('차트보기')
-        self.holic_btn1.clicked.connect(lambda: self.holic_mt())
+        self.holic_btn1.clicked.connect(lambda: self.get_df())
         self.holic_btn1.setCheckable(True)
 
         self.holic_btn2 = QPushButton('차멍 / 끄기')
@@ -78,7 +78,9 @@ class Window(QWidget):
         self.holic_btn3.setCheckable(True)
 
         # https: // www.pythonguis.com / tutorials / pyqt - layouts /
-        self.ch_mt_de = QCheckBox('자세히(오래걸림):체강,거래대금,등락')
+        self.edit_start = QLineEdit(self)
+        self.lbl_t = QLabel('~')
+        self.edit_end = QLineEdit(self)
         self.ch_c_cap = QCheckBox('시총,주식수')
         self.ch_c_ohlcv = QCheckBox('시고저종')
         self.ch_c_fun = QCheckBox('지표')
@@ -171,22 +173,299 @@ class Window(QWidget):
         self.box_ruu = QHBoxLayout(self)
 
         self.lbl_chart1 = QLabel('chart 1')
-        self.edit_chart1_1_1 = QLineEdit(self)
-        self.edit_chart1_1_2 = QLineEdit(self)
-        self.edit_chart1_2_1 = QLineEdit(self)
-        self.edit_chart1_2_2 = QLineEdit(self)
-        self.edit_chart1_3_1 = QLineEdit(self)
+        self.lbl_chart2 = QLabel('chart 2')
+        self.lbl_chart3 = QLabel('chart 3')
+        self.lbl_chart4 = QLabel('chart 4')
+        self.lbl_chart5 = QLabel('chart 5')
+        self.lbl_chart6 = QLabel('chart 6')
+        self.lbl_chart7 = QLabel('chart 7')
+        self.lbl_chart8 = QLabel('chart 8')
+        self.lbl_chart9 = QLabel('chart 9')
+        self.lbl_chart10 = QLabel('chart 10')
+        self.lbl_chart11 = QLabel('chart 11')
+        self.lbl_chart12 = QLabel('chart 12')
+
+        self.edit1_1_1 = QLineEdit(self)
+        self.edit1_1_2 = QLineEdit(self)
+        self.edit1_2_1 = QLineEdit(self)
+        self.edit1_2_2 = QLineEdit(self)
+        self.edit1_3_1 = QLineEdit(self)
+        self.edit1_3_2 = QLineEdit(self)
+        self.edit1_4_1 = QLineEdit(self)
+        self.edit1_4_2 = QLineEdit(self)
+        self.edit1_5_1 = QLineEdit(self)
+        self.edit1_5_2 = QLineEdit(self)
+
+        self.edit2_1_1 = QLineEdit(self)
+        self.edit2_1_2 = QLineEdit(self)
+        self.edit2_2_1 = QLineEdit(self)
+        self.edit2_2_2 = QLineEdit(self)
+        self.edit2_3_1 = QLineEdit(self)
+        self.edit2_3_2 = QLineEdit(self)
+        self.edit2_4_1 = QLineEdit(self)
+        self.edit2_4_2 = QLineEdit(self)
+        self.edit2_5_1 = QLineEdit(self)
+        self.edit2_5_2 = QLineEdit(self)
+
+        self.edit3_1_1 = QLineEdit(self)
+        self.edit3_1_2 = QLineEdit(self)
+        self.edit3_2_1 = QLineEdit(self)
+        self.edit3_2_2 = QLineEdit(self)
+        self.edit3_3_1 = QLineEdit(self)
+        self.edit3_3_2 = QLineEdit(self)
+        self.edit3_4_1 = QLineEdit(self)
+        self.edit3_4_2 = QLineEdit(self)
+        self.edit3_5_1 = QLineEdit(self)
+        self.edit3_5_2 = QLineEdit(self)
+
+        self.edit4_1_1 = QLineEdit(self)
+        self.edit4_1_2 = QLineEdit(self)
+        self.edit4_2_1 = QLineEdit(self)
+        self.edit4_2_2 = QLineEdit(self)
+        self.edit4_3_1 = QLineEdit(self)
+        self.edit4_3_2 = QLineEdit(self)
+        self.edit4_4_1 = QLineEdit(self)
+        self.edit4_4_2 = QLineEdit(self)
+        self.edit4_5_1 = QLineEdit(self)
+        self.edit4_5_2 = QLineEdit(self)
+
+        self.edit5_1_1 = QLineEdit(self)
+        self.edit5_1_2 = QLineEdit(self)
+        self.edit5_2_1 = QLineEdit(self)
+        self.edit5_2_2 = QLineEdit(self)
+        self.edit5_3_1 = QLineEdit(self)
+        self.edit5_3_2 = QLineEdit(self)
+        self.edit5_4_1 = QLineEdit(self)
+        self.edit5_4_2 = QLineEdit(self)
+        self.edit5_5_1 = QLineEdit(self)
+        self.edit5_5_2 = QLineEdit(self)
+
+        self.edit6_1_1 = QLineEdit(self)
+        self.edit6_1_2 = QLineEdit(self)
+        self.edit6_2_1 = QLineEdit(self)
+        self.edit6_2_2 = QLineEdit(self)
+        self.edit6_3_1 = QLineEdit(self)
+        self.edit6_3_2 = QLineEdit(self)
+        self.edit6_4_1 = QLineEdit(self)
+        self.edit6_4_2 = QLineEdit(self)
+        self.edit6_5_1 = QLineEdit(self)
+        self.edit6_5_2 = QLineEdit(self)
+
+        self.edit7_1_1 = QLineEdit(self)
+        self.edit7_1_2 = QLineEdit(self)
+        self.edit7_2_1 = QLineEdit(self)
+        self.edit7_2_2 = QLineEdit(self)
+        self.edit7_3_1 = QLineEdit(self)
+        self.edit7_3_2 = QLineEdit(self)
+        self.edit7_4_1 = QLineEdit(self)
+        self.edit7_4_2 = QLineEdit(self)
+        self.edit7_5_1 = QLineEdit(self)
+        self.edit7_5_2 = QLineEdit(self)
+
+        self.edit8_1_1 = QLineEdit(self)
+        self.edit8_1_2 = QLineEdit(self)
+        self.edit8_2_1 = QLineEdit(self)
+        self.edit8_2_2 = QLineEdit(self)
+        self.edit8_3_1 = QLineEdit(self)
+        self.edit8_3_2 = QLineEdit(self)
+        self.edit8_4_1 = QLineEdit(self)
+        self.edit8_4_2 = QLineEdit(self)
+        self.edit8_5_1 = QLineEdit(self)
+        self.edit8_5_2 = QLineEdit(self)
+
+        self.edit9_1_1 = QLineEdit(self)
+        self.edit9_1_2 = QLineEdit(self)
+        self.edit9_2_1 = QLineEdit(self)
+        self.edit9_2_2 = QLineEdit(self)
+        self.edit9_3_1 = QLineEdit(self)
+        self.edit9_3_2 = QLineEdit(self)
+        self.edit9_4_1 = QLineEdit(self)
+        self.edit9_4_2 = QLineEdit(self)
+        self.edit9_5_1 = QLineEdit(self)
+        self.edit9_5_2 = QLineEdit(self)
+
+        self.edit10_1_1 = QLineEdit(self)
+        self.edit10_1_2 = QLineEdit(self)
+        self.edit10_2_1 = QLineEdit(self)
+        self.edit10_2_2 = QLineEdit(self)
+        self.edit10_3_1 = QLineEdit(self)
+        self.edit10_3_2 = QLineEdit(self)
+        self.edit10_4_1 = QLineEdit(self)
+        self.edit10_4_2 = QLineEdit(self)
+        self.edit10_5_1 = QLineEdit(self)
+        self.edit10_5_2 = QLineEdit(self)
+
+        self.edit11_1_1 = QLineEdit(self)
+        self.edit11_1_2 = QLineEdit(self)
+        self.edit11_2_1 = QLineEdit(self)
+        self.edit11_2_2 = QLineEdit(self)
+        self.edit11_3_1 = QLineEdit(self)
+        self.edit11_3_2 = QLineEdit(self)
+        self.edit11_4_1 = QLineEdit(self)
+        self.edit11_4_2 = QLineEdit(self)
+        self.edit11_5_1 = QLineEdit(self)
+        self.edit11_5_2 = QLineEdit(self)
+
+        self.edit12_1_1 = QLineEdit(self)
+        self.edit12_1_2 = QLineEdit(self)
+        self.edit12_2_1 = QLineEdit(self)
+        self.edit12_2_2 = QLineEdit(self)
+        self.edit12_3_1 = QLineEdit(self)
+        self.edit12_3_2 = QLineEdit(self)
+        self.edit12_4_1 = QLineEdit(self)
+        self.edit12_4_2 = QLineEdit(self)
+        self.edit12_5_1 = QLineEdit(self)
+        self.edit12_5_2 = QLineEdit(self)
+
         self.grid_chart = QGridLayout(self)
         self.grid_chart.setSpacing(10)
         self.grid_chart.addWidget(self.lbl_chart1,0,0)
-        self.grid_chart.addWidget(self.edit_chart1_1_1,0,1)
-        self.grid_chart.addWidget(self.edit_chart1_1_2,0,2)
-        self.grid_chart.addWidget(self.edit_chart1_2_1,1,1)
-        self.grid_chart.addWidget(self.edit_chart1_2_2,1,2)
-        self.grid_chart.addWidget(self.edit_chart1_3_1,2,1)
+        self.grid_chart.addWidget(self.edit1_1_1,1,0)
+        self.grid_chart.addWidget(self.edit1_1_2,1,1)
+        self.grid_chart.addWidget(self.edit1_2_1,2,0)
+        self.grid_chart.addWidget(self.edit1_2_2,2,1)
+        self.grid_chart.addWidget(self.edit1_3_1,3,0)
+        self.grid_chart.addWidget(self.edit1_3_2,3,1)
+        self.grid_chart.addWidget(self.edit1_4_1,4,0)
+        self.grid_chart.addWidget(self.edit1_4_2,4,1)
+        self.grid_chart.addWidget(self.edit1_5_1,5,0)
+        self.grid_chart.addWidget(self.edit1_5_2,5,1)
 
+        self.grid_chart.addWidget(self.lbl_chart2,6,0)
+        self.grid_chart.addWidget(self.edit2_1_1,7,0)
+        self.grid_chart.addWidget(self.edit2_1_2,7,1)
+        self.grid_chart.addWidget(self.edit2_2_1,8,0)
+        self.grid_chart.addWidget(self.edit2_2_2,8,1)
+        self.grid_chart.addWidget(self.edit2_3_1,9,0)
+        self.grid_chart.addWidget(self.edit2_3_2,9,1)
+        self.grid_chart.addWidget(self.edit2_4_1,10,0)
+        self.grid_chart.addWidget(self.edit2_4_2,10,1)
+        self.grid_chart.addWidget(self.edit2_5_1,11,0)
+        self.grid_chart.addWidget(self.edit2_5_2,11,1)
 
-        self.box_luu.addWidget(self.ch_mt_de)
+        self.grid_chart.addWidget(self.lbl_chart3,12,0)
+        self.grid_chart.addWidget(self.edit3_1_1,13,0)
+        self.grid_chart.addWidget(self.edit3_1_2,13,1)
+        self.grid_chart.addWidget(self.edit3_2_1,14,0)
+        self.grid_chart.addWidget(self.edit3_2_2,14,1)
+        self.grid_chart.addWidget(self.edit3_3_1,15,0)
+        self.grid_chart.addWidget(self.edit3_3_2,15,1)
+        self.grid_chart.addWidget(self.edit3_4_1,16,0)
+        self.grid_chart.addWidget(self.edit3_4_2,16,1)
+        self.grid_chart.addWidget(self.edit3_5_1,17,0)
+        self.grid_chart.addWidget(self.edit3_5_2,17,1)
+
+        self.grid_chart.addWidget(self.lbl_chart4,0,2)
+        self.grid_chart.addWidget(self.edit4_1_1,1,2)
+        self.grid_chart.addWidget(self.edit4_1_2,1,3)
+        self.grid_chart.addWidget(self.edit4_2_1,2,2)
+        self.grid_chart.addWidget(self.edit4_2_2,2,3)
+        self.grid_chart.addWidget(self.edit4_3_1,3,2)
+        self.grid_chart.addWidget(self.edit4_3_2,3,3)
+        self.grid_chart.addWidget(self.edit4_4_1,4,2)
+        self.grid_chart.addWidget(self.edit4_4_2,4,3)
+        self.grid_chart.addWidget(self.edit4_5_1,5,2)
+        self.grid_chart.addWidget(self.edit4_5_2,5,3)
+
+        self.grid_chart.addWidget(self.lbl_chart5,6,2)
+        self.grid_chart.addWidget(self.edit5_1_1,7,2)
+        self.grid_chart.addWidget(self.edit5_1_2,7,3)
+        self.grid_chart.addWidget(self.edit5_2_1,8,2)
+        self.grid_chart.addWidget(self.edit5_2_2,8,3)
+        self.grid_chart.addWidget(self.edit5_3_1,9,2)
+        self.grid_chart.addWidget(self.edit5_3_2,9,3)
+        self.grid_chart.addWidget(self.edit5_4_1,10,2)
+        self.grid_chart.addWidget(self.edit5_4_2,10,3)
+        self.grid_chart.addWidget(self.edit5_5_1,11,2)
+        self.grid_chart.addWidget(self.edit5_5_2,11,3)
+
+        self.grid_chart.addWidget(self.lbl_chart6,12,2)
+        self.grid_chart.addWidget(self.edit6_1_1,13,2)
+        self.grid_chart.addWidget(self.edit6_1_2,13,3)
+        self.grid_chart.addWidget(self.edit6_2_1,14,2)
+        self.grid_chart.addWidget(self.edit6_2_2,14,3)
+        self.grid_chart.addWidget(self.edit6_3_1,15,2)
+        self.grid_chart.addWidget(self.edit6_3_2,15,3)
+        self.grid_chart.addWidget(self.edit6_4_1,16,2)
+        self.grid_chart.addWidget(self.edit6_4_2,16,3)
+        self.grid_chart.addWidget(self.edit6_5_1,17,2)
+        self.grid_chart.addWidget(self.edit6_5_2,17,3)
+
+        self.grid_chart.addWidget(self.lbl_chart7,0,4)
+        self.grid_chart.addWidget(self.edit7_1_1,1,4)
+        self.grid_chart.addWidget(self.edit7_1_2,1,5)
+        self.grid_chart.addWidget(self.edit7_2_1,2,4)
+        self.grid_chart.addWidget(self.edit7_2_2,2,5)
+        self.grid_chart.addWidget(self.edit7_3_1,3,4)
+        self.grid_chart.addWidget(self.edit7_3_2,3,5)
+        self.grid_chart.addWidget(self.edit7_4_1,4,4)
+        self.grid_chart.addWidget(self.edit7_4_2,4,5)
+        self.grid_chart.addWidget(self.edit7_5_1,5,4)
+        self.grid_chart.addWidget(self.edit7_5_2,5,5)
+
+        self.grid_chart.addWidget(self.lbl_chart8,6,4)
+        self.grid_chart.addWidget(self.edit8_1_1,7,4)
+        self.grid_chart.addWidget(self.edit8_1_2,7,5)
+        self.grid_chart.addWidget(self.edit8_2_1,8,4)
+        self.grid_chart.addWidget(self.edit8_2_2,8,5)
+        self.grid_chart.addWidget(self.edit8_3_1,9,4)
+        self.grid_chart.addWidget(self.edit8_3_2,9,5)
+        self.grid_chart.addWidget(self.edit8_4_1,10,4)
+        self.grid_chart.addWidget(self.edit8_4_2,10,5)
+        self.grid_chart.addWidget(self.edit8_5_1,11,4)
+        self.grid_chart.addWidget(self.edit8_5_2,11,5)
+
+        self.grid_chart.addWidget(self.lbl_chart9,12,4)
+        self.grid_chart.addWidget(self.edit9_1_1,13,4)
+        self.grid_chart.addWidget(self.edit9_1_2,13,5)
+        self.grid_chart.addWidget(self.edit9_2_1,14,4)
+        self.grid_chart.addWidget(self.edit9_2_2,14,5)
+        self.grid_chart.addWidget(self.edit9_3_1,15,4)
+        self.grid_chart.addWidget(self.edit9_3_2,15,5)
+        self.grid_chart.addWidget(self.edit9_4_1,16,4)
+        self.grid_chart.addWidget(self.edit9_4_2,16,5)
+        self.grid_chart.addWidget(self.edit9_5_1,17,4)
+        self.grid_chart.addWidget(self.edit9_5_2,17,5)
+
+        self.grid_chart.addWidget(self.lbl_chart10,0,6)
+        self.grid_chart.addWidget(self.edit10_1_1,1,6)
+        self.grid_chart.addWidget(self.edit10_1_2,1,7)
+        self.grid_chart.addWidget(self.edit10_2_1,2,6)
+        self.grid_chart.addWidget(self.edit10_2_2,2,7)
+        self.grid_chart.addWidget(self.edit10_3_1,3,6)
+        self.grid_chart.addWidget(self.edit10_3_2,3,7)
+        self.grid_chart.addWidget(self.edit10_4_1,4,6)
+        self.grid_chart.addWidget(self.edit10_4_2,4,7)
+        self.grid_chart.addWidget(self.edit10_5_1,5,6)
+        self.grid_chart.addWidget(self.edit10_5_2,5,7)
+
+        self.grid_chart.addWidget(self.lbl_chart11,6,6)
+        self.grid_chart.addWidget(self.edit11_1_1,7,6)
+        self.grid_chart.addWidget(self.edit11_1_2,7,7)
+        self.grid_chart.addWidget(self.edit11_2_1,8,6)
+        self.grid_chart.addWidget(self.edit11_2_2,8,7)
+        self.grid_chart.addWidget(self.edit11_3_1,9,6)
+        self.grid_chart.addWidget(self.edit11_3_2,9,7)
+        self.grid_chart.addWidget(self.edit11_4_1,10,6)
+        self.grid_chart.addWidget(self.edit11_4_2,10,7)
+        self.grid_chart.addWidget(self.edit11_5_1,11,6)
+        self.grid_chart.addWidget(self.edit11_5_2,11,7)
+
+        self.grid_chart.addWidget(self.lbl_chart12,12,6)
+        self.grid_chart.addWidget(self.edit12_1_1,13,6)
+        self.grid_chart.addWidget(self.edit12_1_2,13,7)
+        self.grid_chart.addWidget(self.edit12_2_1,14,6)
+        self.grid_chart.addWidget(self.edit12_2_2,14,7)
+        self.grid_chart.addWidget(self.edit12_3_1,15,6)
+        self.grid_chart.addWidget(self.edit12_3_2,15,7)
+        self.grid_chart.addWidget(self.edit12_4_1,16,6)
+        self.grid_chart.addWidget(self.edit12_4_2,16,7)
+        self.grid_chart.addWidget(self.edit12_5_1,17,6)
+        self.grid_chart.addWidget(self.edit12_5_2,17,7)
+
+        self.box_luu.addWidget(self.edit_start)
+        self.box_luu.addWidget(self.lbl_t)
+        self.box_luu.addWidget(self.edit_end)
         self.box_luu.addWidget(self.btn1)
         self.box_mt.addLayout(self.box_luu)
         self.box_mt.addLayout(self.grid_chart)
@@ -270,7 +549,6 @@ class Window(QWidget):
 
         self.setLayout(self.vbox)
 
-        self.table1.cellDoubleClicked.connect(self.celldoubleclicked_event1)
         self.table2.cellDoubleClicked.connect(self.celldoubleclicked_event2)
         self.table3.cellDoubleClicked.connect(self.celldoubleclicked_event3)
         self.table4.cellDoubleClicked.connect(self.celldoubleclicked_event4)
@@ -460,8 +738,192 @@ class Window(QWidget):
         self.chart = Chart(df, stock_name,stock_code, date,self.edit2_t,self.edit3_t,self.edit4_t,self.edit5_t,self.edit7_t)
         self.chart.setGeometry(0, 30, 3850, 1010)
         self.chart.show()
-    def holic_mt(self):
-        =self.edit_chart1_1_1.text()
+    def get_df(self):
+        ticker1_1_1=self.edit1_1_1.text()
+        ticker1_2_1=self.edit1_2_1.text()
+        ticker1_3_1=self.edit1_3_1.text()
+        ticker1_4_1=self.edit1_4_1.text()
+        ticker1_5_1=self.edit1_5_1.text()
+
+        ticker2_1_1=self.edit2_1_1.text()
+        ticker2_2_1=self.edit2_2_1.text()
+        ticker2_3_1=self.edit2_3_1.text()
+        ticker2_4_1=self.edit2_4_1.text()
+        ticker2_5_1=self.edit2_5_1.text()
+
+        ticker3_1_1=self.edit3_1_1.text()
+        ticker3_2_1=self.edit3_2_1.text()
+        ticker3_3_1=self.edit3_3_1.text()
+        ticker3_4_1=self.edit3_4_1.text()
+        ticker3_5_1=self.edit3_5_1.text()
+
+        ticker4_1_1=self.edit4_1_1.text()
+        ticker4_2_1=self.edit4_2_1.text()
+        ticker4_3_1=self.edit4_3_1.text()
+        ticker4_4_1=self.edit4_4_1.text()
+        ticker4_5_1=self.edit4_5_1.text()
+
+        ticker5_1_1=self.edit5_1_1.text()
+        ticker5_2_1=self.edit5_2_1.text()
+        ticker5_3_1=self.edit5_3_1.text()
+        ticker5_4_1=self.edit5_4_1.text()
+        ticker5_5_1=self.edit5_5_1.text()
+
+        ticker6_1_1=self.edit6_1_1.text()
+        ticker6_2_1=self.edit6_2_1.text()
+        ticker6_3_1=self.edit6_3_1.text()
+        ticker6_4_1=self.edit6_4_1.text()
+        ticker6_5_1=self.edit6_5_1.text()
+
+        ticker7_1_1=self.edit7_1_1.text()
+        ticker7_2_1=self.edit7_2_1.text()
+        ticker7_3_1=self.edit7_3_1.text()
+        ticker7_4_1=self.edit7_4_1.text()
+        ticker7_5_1=self.edit7_5_1.text()
+
+        ticker8_1_1=self.edit8_1_1.text()
+        ticker8_2_1=self.edit8_2_1.text()
+        ticker8_3_1=self.edit8_3_1.text()
+        ticker8_4_1=self.edit8_4_1.text()
+        ticker8_5_1=self.edit8_5_1.text()
+
+        ticker9_1_1=self.edit9_1_1.text()
+        ticker9_2_1=self.edit9_2_1.text()
+        ticker9_3_1=self.edit9_3_1.text()
+        ticker9_4_1=self.edit9_4_1.text()
+        ticker9_5_1=self.edit9_5_1.text()
+
+        ticker10_1_1=self.edit10_1_1.text()
+        ticker10_2_1=self.edit10_2_1.text()
+        ticker10_3_1=self.edit10_3_1.text()
+        ticker10_4_1=self.edit10_4_1.text()
+        ticker10_5_1=self.edit10_5_1.text()
+
+        ticker11_1_1=self.edit11_1_1.text()
+        ticker11_2_1=self.edit11_2_1.text()
+        ticker11_3_1=self.edit11_3_1.text()
+        ticker11_4_1=self.edit11_4_1.text()
+        ticker11_5_1=self.edit11_5_1.text()
+
+        ticker12_1_1=self.edit12_1_1.text()
+        ticker12_2_1=self.edit12_2_1.text()
+        ticker12_3_1=self.edit12_3_1.text()
+        ticker12_4_1=self.edit12_4_1.text()
+        ticker12_5_1=self.edit12_5_1.text()
+
+        line1_1_2=self.edit1_1_2.text()
+        line1_2_2=self.edit1_2_2.text()
+        line1_3_2=self.edit1_3_2.text()
+        line1_4_2=self.edit1_4_2.text()
+        line1_5_2=self.edit1_5_2.text()
+
+        line2_1_2=self.edit2_1_2.text()
+        line2_2_2=self.edit2_2_2.text()
+        line2_3_2=self.edit2_3_2.text()
+        line2_4_2=self.edit2_4_2.text()
+        line2_5_2=self.edit2_5_2.text()
+
+        line3_1_2=self.edit3_1_2.text()
+        line3_2_2=self.edit3_2_2.text()
+        line3_3_2=self.edit3_3_2.text()
+        line3_4_2=self.edit3_4_2.text()
+        line3_5_2=self.edit3_5_2.text()
+
+        line4_1_2=self.edit4_1_2.text()
+        line4_2_2=self.edit4_2_2.text()
+        line4_3_2=self.edit4_3_2.text()
+        line4_4_2=self.edit4_4_2.text()
+        line4_5_2=self.edit4_5_2.text()
+
+        line5_1_2=self.edit5_1_2.text()
+        line5_2_2=self.edit5_2_2.text()
+        line5_3_2=self.edit5_3_2.text()
+        line5_4_2=self.edit5_4_2.text()
+        line5_5_2=self.edit5_5_2.text()
+
+        line6_1_2=self.edit6_1_2.text()
+        line6_2_2=self.edit6_2_2.text()
+        line6_3_2=self.edit6_3_2.text()
+        line6_4_2=self.edit6_4_2.text()
+        line6_5_2=self.edit6_5_2.text()
+
+        line7_1_2=self.edit7_1_2.text()
+        line7_2_2=self.edit7_2_2.text()
+        line7_3_2=self.edit7_3_2.text()
+        line7_4_2=self.edit7_4_2.text()
+        line7_5_2=self.edit7_5_2.text()
+
+        line8_1_2=self.edit8_1_2.text()
+        line8_2_2=self.edit8_2_2.text()
+        line8_3_2=self.edit8_3_2.text()
+        line8_4_2=self.edit8_4_2.text()
+        line8_5_2=self.edit8_5_2.text()
+
+        line9_1_2=self.edit9_1_2.text()
+        line9_2_2=self.edit9_2_2.text()
+        line9_3_2=self.edit9_3_2.text()
+        line9_4_2=self.edit9_4_2.text()
+        line9_5_2=self.edit9_5_2.text()
+
+        line10_1_2=self.edit10_1_2.text()
+        line10_2_2=self.edit10_2_2.text()
+        line10_3_2=self.edit10_3_2.text()
+        line10_4_2=self.edit10_4_2.text()
+        line10_5_2=self.edit10_5_2.text()
+
+        line11_1_2=self.edit11_1_2.text()
+        line11_2_2=self.edit11_2_2.text()
+        line11_3_2=self.edit11_3_2.text()
+        line11_4_2=self.edit11_4_2.text()
+        line11_5_2=self.edit11_5_2.text()
+
+        line12_1_2=self.edit12_1_2.text()
+        line12_2_2=self.edit12_2_2.text()
+        line12_3_2=self.edit12_3_2.text()
+        line12_4_2=self.edit12_4_2.text()
+        line12_5_2=self.edit12_5_2.text()
+
+
+
+        tickers1 = [ticker1_1_1,ticker1_2_1,ticker1_3_1,ticker1_4_1,ticker1_5_1]
+        tickers2 = [ticker2_1_1,ticker2_2_1,ticker2_3_1,ticker2_4_1,ticker2_5_1]
+        tickers3 = [ticker3_1_1,ticker3_2_1,ticker3_3_1,ticker3_4_1,ticker3_5_1]
+        tickers4 = [ticker3_1_1,ticker3_2_1,ticker3_3_1,ticker3_4_1,ticker3_5_1]
+        tickers5 = [ticker3_1_1,ticker3_2_1,ticker3_3_1,ticker3_4_1,ticker3_5_1]
+        tickers6 = [ticker3_1_1,ticker3_2_1,ticker3_3_1,ticker3_4_1,ticker3_5_1]
+        tickers7 = [ticker3_1_1,ticker3_2_1,ticker3_3_1,ticker3_4_1,ticker3_5_1]
+        tickers8 = [ticker3_1_1,ticker3_2_1,ticker3_3_1,ticker3_4_1,ticker3_5_1]
+        tickers9 = [ticker3_1_1,ticker3_2_1,ticker3_3_1,ticker3_4_1,ticker3_5_1]
+        tickers10 = [ticker3_1_1,ticker3_2_1,ticker3_3_1,ticker3_4_1,ticker3_5_1]
+        tickers11 = [ticker3_1_1,ticker3_2_1,ticker3_3_1,ticker3_4_1,ticker3_5_1]
+        tickers12 = [ticker3_1_1,ticker3_2_1,ticker3_3_1,ticker3_4_1,ticker3_5_1]
+        lines1 = [line1_1_2,line1_2_2,line1_3_2,line1_4_2,line1_5_2]
+        lines2 = [line2_1_2,line2_2_2,line2_3_2,line2_4_2,line2_5_2]
+        lines3 = [line3_1_2,line3_2_2,line3_3_2,line3_4_2,line3_5_2]
+        lines4 = [line4_1_2,line4_2_2,line4_3_2,line4_4_2,line4_5_2]
+        lines5 = [line5_1_2,line5_2_2,line5_3_2,line5_4_2,line5_5_2]
+        lines6 = [line6_1_2,line6_2_2,line6_3_2,line6_4_2,line6_5_2]
+        lines7 = [line7_1_2,line7_2_2,line7_3_2,line7_4_2,line7_5_2]
+        lines8 = [line8_1_2,line8_2_2,line8_3_2,line8_4_2,line8_5_2]
+        lines9 = [line9_1_2,line9_2_2,line9_3_2,line9_4_2,line9_5_2]
+        lines10 = [line10_1_2,line10_2_2,line10_3_2,line10_4_2,line10_5_2]
+        lines11 = [line11_1_2,line11_2_2,line11_3_2,line11_4_2,line11_5_2]
+        lines12 = [line12_1_2,line12_2_2,line12_3_2,line12_4_2,line12_5_2]
+        tickers = [tickers1,tickers2,tickers3,tickers4,tickers5,tickers6,tickers7,tickers8,tickers9,tickers10,tickers11,tickers12]
+        lines = [lines1,lines2,lines3,lines4,lines5,lines6,lines7,lines8,lines9,lines10,lines11,lines12]
+        con = sqlite3.connect(db_file)
+        df = pd.DataFrame()
+        graph = []
+        for i,ticker in enumerate(tickers1):
+            line = lines1[i]
+            df_ticker = pd.read_sql("SELECT * FROM " + "'" + ticker + "'", con).set_index('index')
+            s = df_ticker[line]
+            s.rename(f'{ticker}_{line}', inplace=True)  # 시리즈의 컬럼명 변경
+            graph.append(f'{ticker}_{line}')
+            df = pd.concat([df, s], axis=1)
+
+        # df['종목코드'] = df.index
+        con.close()
     def holic_back(self,delay):
         # print(df_back)
         # df_back.to_excel('table.xlsx')
@@ -566,8 +1028,8 @@ def split_time(df,start,end):
     return df,groups
 def qtable_moneytop(file):
 
-    conn = sqlite3.connect(file)
-    cursor = conn.cursor()
+    con = sqlite3.connect(file)
+    cursor = con.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     table_list=cursor.fetchall() #fetchall 한번에 모든 로우 데이터 읽기 (종목코드 읽기)
     if not table_list:
@@ -575,7 +1037,7 @@ def qtable_moneytop(file):
     table_list = np.concatenate(table_list).tolist() #모든테이블을 리스트로변환 https://codechacha.com/ko/python-flatten-list/
     df_macro=pd.DataFrame()
     for i,table in enumerate(table_list):
-        df = pd.read_sql("SELECT * FROM '"+ table+"'", conn).set_index('index')
+        df = pd.read_sql("SELECT * FROM '"+ table+"'", con).set_index('index')
         df,groups = split_time(df, start, end)
         df_groups = groups.size()
         # df_groups=Series(index = table)
@@ -593,8 +1055,8 @@ def qtable_moneytop(file):
     df_macro = df_macro[col1+col2]
     return df_macro
 def qtable_back_list(select):
-    conn = sqlite3.connect(back_file)
-    cursor = conn.cursor()
+    con = sqlite3.connect(back_file)
+    cursor = con.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     table_list = cursor.fetchall()  # fetchall 한번에 모든 로우 데이터 읽기 (종목코드 읽기)
     if not table_list:
@@ -608,7 +1070,7 @@ def qtable_back_list(select):
     elif select == 'vc':
         table = 'stock_vc' #최적화 불러오기
         print('vc 불러오기')
-    df = pd.read_sql("SELECT * FROM '"+table+"'", conn).set_index('index')
+    df = pd.read_sql("SELECT * FROM '"+table+"'", con).set_index('index')
     # print(df)
     df.index = df.index.astype(str)
     df['index'] = df.index.str[4:6]+'/'+df.index.str[6:8]+' '+df.index.str[8:10]+':'+df.index.str[10:12] #db테이블의 테이블 제목이랑 stock_vj의 index가 다름 주의
@@ -623,13 +1085,13 @@ def qtable_back_list(select):
         df = df[['index', '평균수익률', '승률', '최대낙폭률', '일평균거래횟수', '최대보유종목수', '수익률합계', '수익금합계', '거래횟수','필요자금', '배팅금액', '평균보유기간',
                  '익절', '손절', '변수','매수전략', '매도전략', '범위설정']]
     # print(df)
-    conn.close()
+    con.close()
     return df
 def qtable_backtest(v_time,cap,ohlcv,fun):
     def backtest(v_time):
         # print(v_time)
-        conn = sqlite3.connect(back_file)
-        cursor = conn.cursor()
+        con = sqlite3.connect(back_file)
+        cursor = con.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         back_table_list = cursor.fetchall()  # fetchall 한번에 모든 로우 데이터 읽기
         back_table_list = np.concatenate(back_table_list).tolist()  # 모든테이블을 리스트로변환 https://codechacha.com/ko/python-flatten-list/
@@ -638,10 +1100,10 @@ def qtable_backtest(v_time,cap,ohlcv,fun):
         # print('vtable',v_table)
         back_table = v_table[0]
         # print(type(back_table))
-        df_back_list = pd.read_sql("SELECT * FROM " + back_table, conn).set_index('index')
+        df_back_list = pd.read_sql("SELECT * FROM " + back_table, con).set_index('index')
         # print(df_back_list)
         df_back_list = df_time(df_back_list, start, end)  # 백테스트 시간 슬라이싱
-        conn.close()
+        con.close()
         dict_bt = df_back_list['종목명'].to_dict()
         bt_list = list(set(';'.join(list(dict_bt.values())).split(';')))
         stock_name = df_back_list['종목명'].str.split(';').apply(Series, 1).stack()
@@ -783,11 +1245,11 @@ def make_stock_code(stock_name):
 def get_data(stock_code,date,file):
     if not os.path.isfile(file):
         print('* 파일 없음 - 경로 확인 *')
-    conn = sqlite3.connect(file)
-    cursor = conn.cursor()
+    con = sqlite3.connect(file)
+    cursor = con.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     try:
-        df = pd.read_sql("SELECT * FROM " + "'" + stock_code + "'", conn).set_index('index')
+        df = pd.read_sql("SELECT * FROM " + "'" + stock_code + "'", con).set_index('index')
     except:
         print('* db파일에 종목 없음 *')
         df = []
@@ -795,11 +1257,11 @@ def get_data(stock_code,date,file):
     if df.empty:
         print('* db테이블에 종목은 있으나 데이터가 비어있음 또는 머니탑에 종목은 있으나 테이블이 비어있음- 확인 필요 *')
 
-    conn.close()
+    con.close()
     return df
 def get_table_list(file):
-    conn = sqlite3.connect(file)
-    cursor = conn.cursor()
+    con = sqlite3.connect(file)
+    cursor = con.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     table_list = cursor.fetchall()  # fetchall 한번에 모든 로우 데이터 읽기 (종목코드 읽기)
     if not table_list:
@@ -1410,13 +1872,13 @@ def crosshair2(main_pg, sub_pg1, sub_pg2,sub_pg3,sub_pg4,sub_pg5,sub_pg6,sub_pg7
     sub_pg10.proxy = pg.SignalProxy(sub_pg1.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
 
 def db_stock_list():
-    conn = sqlite3.connect(stock_tick_file)
-    cursor = conn.cursor()
+    con = sqlite3.connect(stock_tick_file)
+    cursor = con.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     table = 'codename'
-    df = pd.read_sql("SELECT * FROM " + "'" + table + "'", conn).set_index('index')
+    df = pd.read_sql("SELECT * FROM " + "'" + table + "'", con).set_index('index')
     # df['종목코드'] = df.index
-    conn.close()
+    con.close()
     df.reset_index(drop=False, inplace=True)  # 인덱스 번호순 으로 재 정의
     df.rename(columns={'index': '종목코드'}, inplace=True)  # 컬럼명 변경
     return df
@@ -1949,6 +2411,7 @@ def df_add(df,avg,ch_max):
     return df
 if __name__ == '__main__':
     path = "D:/tele_bot/"
+    db_file = "D:/db_files/data.db"
     macro_file = path + 'macroeconomics.db'
     KRX_file = path + 'KRX.db'
     US_stock_file = path + 'US_stock.db'

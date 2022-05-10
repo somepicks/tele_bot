@@ -12,7 +12,7 @@ pd.set_option('mode.chained_assignment',  None) # SettingWithCopyWarning 경고�
 import FinanceDataReader as fdr
 
 def list_krx():
-    con = sqlite3.connect('KRX.db')
+    con = sqlite3.connect(db_file)
     stock_list = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13', header=0)[0]
     stock_list.종목코드 = stock_list.종목코드.map('{:06d}'.format)  # 종목코드가 6자리이기 때문에 6자리를 맞춰주기 위해 설정해줌
     stock_list = stock_list[['회사명', '종목코드', '업종', '주요제품', '상장일']]  # 우리가 필요한 것은 회사명과 종목코드이기 때문에 필요없는 column들은 제외해준다.
@@ -38,18 +38,18 @@ def index_numbers():
     name = list(stocks.values())
     for i,ticker in enumerate(tickers):
         print(f'DB저장 중... [{i+1}:{len(tickers)}] | {name[i]}')
-        con = sqlite3.connect('macroeconomics.db')
+        con = sqlite3.connect(db_file)
         # cur = con.cursor()
         df = fdr.DataReader(ticker)
         df.rename(columns={'Open':'open','High':'high','Low':'low','Close':'close'}, inplace=True)  # 컬럼명 변경
-        df = make_indicator.sma(df,ticker)
-        df = make_indicator.CCI(df,ticker)
-        df = make_indicator.CMO(df,ticker)
-        df = make_indicator.RSI(df,ticker)
-        df = make_indicator.df_add(df,ticker)
-        df = make_indicator.BBAND(df,ticker)
-        df = make_indicator.ATR(df,ticker)
-        df = make_indicator.heikin_ashi(df,ticker)
+        df = make_indicator.sma(df)
+        df = make_indicator.CCI(df)
+        df = make_indicator.CMO(df)
+        df = make_indicator.RSI(df)
+        df = make_indicator.df_add(df)
+        df = make_indicator.BBAND(df)
+        df = make_indicator.ATR(df)
+        df = make_indicator.heikin_ashi(df)
         df.index = df.index.strftime("%Y%m%d").astype(np.int64)
         table = name[i]
         df.to_sql(table, con, if_exists='replace')
@@ -62,18 +62,18 @@ def bond():
     name = list(stocks.values())
     for i,ticker in enumerate(tickers):
         print(f'DB저장 중... [{i+1}:{len(tickers)}] | {name[i]}')
-        con = sqlite3.connect('macroeconomics.db')
+        con = sqlite3.connect(db_file)
         # cur = con.cursor()
         df = fdr.DataReader(ticker)
         df.rename(columns={'Open':'open','High':'high','Low':'low','Close':'close'}, inplace=True)  # 컬럼명 변경
-        df = make_indicator.sma(df,ticker)
-        df = make_indicator.CCI(df,ticker)
-        df = make_indicator.CMO(df,ticker)
-        df = make_indicator.RSI(df,ticker)
-        df = make_indicator.df_add(df,ticker)
-        df = make_indicator.BBAND(df,ticker)
-        df = make_indicator.ATR(df,ticker)
-        df = make_indicator.heikin_ashi(df,ticker)
+        df = make_indicator.sma(df)
+        df = make_indicator.CCI(df)
+        df = make_indicator.CMO(df)
+        df = make_indicator.RSI(df)
+        df = make_indicator.df_add(df)
+        df = make_indicator.BBAND(df)
+        df = make_indicator.ATR(df)
+        df = make_indicator.heikin_ashi(df)
         df.index = df.index.strftime("%Y%m%d").astype(np.int64)
         table = name[i]
         df.to_sql(table, con, if_exists='replace')
@@ -86,18 +86,18 @@ def exchange():
     name = list(stocks.values())
     for i,ticker in enumerate(tickers):
         print(f'DB저장 중... [{i+1}:{len(tickers)}] | {name[i]}')
-        con = sqlite3.connect('macroeconomics.db')
+        con = sqlite3.connect(db_file)
         # cur = con.cursor()
         df = fdr.DataReader(ticker)
         df.rename(columns={'Open':'open','High':'high','Low':'low','Close':'close'}, inplace=True)  # 컬럼명 변경
-        df = make_indicator.sma(df,ticker)
-        df = make_indicator.CCI(df,ticker)
-        df = make_indicator.CMO(df,ticker)
-        df = make_indicator.RSI(df,ticker)
-        df = make_indicator.df_add(df,ticker)
-        df = make_indicator.BBAND(df,ticker)
-        df = make_indicator.ATR(df,ticker)
-        df = make_indicator.heikin_ashi(df,ticker)
+        df = make_indicator.sma(df)
+        df = make_indicator.CCI(df)
+        df = make_indicator.CMO(df)
+        df = make_indicator.RSI(df)
+        df = make_indicator.df_add(df)
+        df = make_indicator.BBAND(df)
+        df = make_indicator.ATR(df)
+        df = make_indicator.heikin_ashi(df)
         df.index = df.index.strftime("%Y%m%d").astype(np.int64)
         table = name[i]
         df.to_sql(table, con, if_exists='replace')
@@ -109,18 +109,18 @@ def materials():
     name = list(stocks.values())
     for i,ticker in enumerate(tickers):
         print(f'DB저장 중... [{i+1}:{len(tickers)}] | {name[i]}')
-        con = sqlite3.connect('macroeconomics.db')
+        con = sqlite3.connect(db_file)
         # cur = con.cursor()
         df = fdr.DataReader(ticker)
         df.rename(columns={'Open':'open','High':'high','Low':'low','Close':'close'}, inplace=True)  # 컬럼명 변경
-        df = make_indicator.sma(df,ticker)
-        df = make_indicator.CCI(df,ticker)
-        df = make_indicator.CMO(df,ticker)
-        df = make_indicator.RSI(df,ticker)
-        df = make_indicator.df_add(df,ticker)
-        df = make_indicator.BBAND(df,ticker)
-        df = make_indicator.ATR(df,ticker)
-        df = make_indicator.heikin_ashi(df,ticker)
+        df = make_indicator.sma(df)
+        df = make_indicator.CCI(df)
+        df = make_indicator.CMO(df)
+        df = make_indicator.RSI(df)
+        df = make_indicator.df_add(df)
+        df = make_indicator.BBAND(df)
+        df = make_indicator.ATR(df)
+        df = make_indicator.heikin_ashi(df)
         df.index = df.index.strftime("%Y%m%d").astype(np.int64)
         table = name[i]
         df.to_sql(table, con, if_exists='replace')
@@ -128,9 +128,10 @@ def materials():
         con.close()
 
 if __name__ == '__main__':
-    # list_krx()
-    bond()
-    exchange()
-    materials()
-    index_numbers()
-
+    db_file = "D:/db_files/data.db"
+    # bond()
+    # exchange()
+    # materials()
+    # index_numbers()
+    df = fdr.DataReader('IXIC')
+    print(df)
