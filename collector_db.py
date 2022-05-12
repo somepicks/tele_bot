@@ -75,7 +75,6 @@ def bond():
         df = make_indicator.ATR(df)
         df = make_indicator.heikin_ashi(df)
         df.index = df.index.strftime("%Y%m%d").astype(np.int64)
-        df.rename(columns={'Open':'open','High':'high','Low':'low','Close':'close','Change':'change'}, inplace=True)  # 컬럼명 변경
         table = name[i]
         df.to_sql(table, con, if_exists='replace')
         con.commit()
@@ -129,10 +128,10 @@ def materials():
         con.close()
 
 if __name__ == '__main__':
-    # list_krx()
-    db_file = "D:/db_data/data.db"
-    bond()
-    exchange()
-    materials()
-    index_numbers()
-
+    db_file = "D:/db_files/data.db"
+    # bond()
+    # exchange()
+    # materials()
+    # index_numbers()
+    df = fdr.DataReader('IXIC')
+    print(df)
