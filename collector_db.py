@@ -32,7 +32,7 @@ def list_US():
 
 def index_numbers():
     stocks ={'KS11':'코스피','KQ11':'코스닥','KS50':'코스피50','KS100':'코스피100','KRX100':'KRX100','KS200':'코스피200'
-              ,'DJI':'다우존스','IXIC':'나스닥','US500':'S&P500','VIX':'VIX','STOXX50E':'유로스톡50','CSI300':'중국','HSI':'항셍'
+              ,'DJI':'다우존스','US500':'S&P500','VIX':'VIX','STOXX50E':'유로스톡50','CSI300':'중국','HSI':'항셍'
               ,'FTSE':'영국','DAX':'독일','CAC':'프랑스'}
     tickers=list(stocks.keys())
     name = list(stocks.values())
@@ -129,9 +129,9 @@ def materials():
 
 if __name__ == '__main__':
     db_file = "D:/db_files/data.db"
-    # bond()
-    # exchange()
-    # materials()
-    # index_numbers()
-    df = fdr.DataReader('IXIC')
-    print(df)
+    index_numbers()
+    bond()
+    exchange()
+    materials()
+    # df = fdr.DataReader('IXIC')
+    # print(df)

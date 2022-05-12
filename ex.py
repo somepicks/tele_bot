@@ -46,3 +46,8 @@ print(graph)
 con = sqlite3.connect("D:/db_files/save.db")
 now=datetime.datetime.now()
 df.to_sql(str(now),con)
+
+asdf =['1','as','']
+for dfk in asdf:
+    if str.isdigit(dfk):
+        print(dfk)
