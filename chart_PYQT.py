@@ -30,14 +30,14 @@ class Window(QWidget):
         # self.setGeometry(500, 100, 1000, 1000)
         # QTableWidget.setWindowTitle(self, "Custom table widget")
         proxymodel = QSortFilterProxyModel()  #정렬
-        self.table1 = QTableWidget()
+        # self.table1 = QTableWidget()
 
-        self.table1.setMinimumSize(100, 500)
+        # self.table1.setMinimumSize(100, 500)
+        # self.table1.setSortingEnabled(True) #정렬
+        # self.table1.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers) #더블클릭 시 수정 금지
         # self.table1.setModel(proxymodel)
-        self.table1.setSortingEnabled(True) #정렬
-        self.table1.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers) #더블클릭 시 수정 금지
         # self.configureTable1(self.table1)
-        # print(df)
+
         self.table2 = QTableWidget()
         self.table2.setSortingEnabled(True)
         self.table2.setMinimumSize(100, 50)
@@ -58,16 +58,16 @@ class Window(QWidget):
 
         #https://appia.tistory.com/276
         # https://hello-bryan.tistory.com/213
-        self.btn1 = QPushButton('view_chart')
-        self.btn1.clicked.connect(lambda: self.configureTable1(self.table1))
+        self.btn1 = QPushButton('차트보기')
+        self.btn1.clicked.connect(lambda: self.get_df())
         self.btn2 = QPushButton('backtest')
         self.btn2.clicked.connect(lambda: self.configureTable2(self.table2))
         self.btn3 = QPushButton('backtest_최적화')
         self.btn3.clicked.connect(lambda: self.configureTable4(self.table4))
 
-        self.holic_btn1 = QPushButton('차트보기')
-        self.holic_btn1.clicked.connect(lambda: self.get_df())
-        self.holic_btn1.setCheckable(True)
+        # self.holic_btn1 = QPushButton('차트보기')
+        # self.holic_btn1.clicked.connect(lambda: self.get_df())
+        # self.holic_btn1.setCheckable(True)
 
         self.holic_btn2 = QPushButton('차멍 / 끄기')
         self.holic_btn2.clicked.connect(lambda: self.holic_back(delay))
@@ -190,7 +190,7 @@ class Window(QWidget):
         self.box_luu.addWidget(self.btn1)
         self.box_mt.addLayout(self.box_luu)
         self.box_mt.addLayout(self.grid_chart)
-        self.box_mt.addWidget(self.holic_btn1)
+        # self.box_mt.addWidget(self.holic_btn1)
         self.box_cuu.addWidget(self.ch_c_cap)
         self.box_cuu.addWidget(self.ch_c_ohlcv)
         self.box_cuu.addWidget(self.ch_c_fun)
@@ -460,6 +460,8 @@ class Window(QWidget):
         self.chart.setGeometry(0, 30, 3850, 1010)
         self.chart.show()
     def get_df(self):
+        duration_s = self.edit_start.text()
+        duration_e = self.edit_end.text()
         ticker1_1_1=self.edit1_1_1.text()
         ticker1_2_1=self.edit1_2_1.text()
         ticker1_3_1=self.edit1_3_1.text()
@@ -604,8 +606,6 @@ class Window(QWidget):
         line12_4_2=self.edit12_4_2.text()
         line12_5_2=self.edit12_5_2.text()
 
-
-
         tickers1 = [ticker1_1_1,ticker1_2_1,ticker1_3_1,ticker1_4_1,ticker1_5_1]
         tickers2 = [ticker2_1_1,ticker2_2_1,ticker2_3_1,ticker2_4_1,ticker2_5_1]
         tickers3 = [ticker3_1_1,ticker3_2_1,ticker3_3_1,ticker3_4_1,ticker3_5_1]
@@ -635,9 +635,6 @@ class Window(QWidget):
         con = sqlite3.connect(db_file)
         df = pd.DataFrame()
         graph = []
-        print(ticker_group)
-        print(line_group)
-        print(graph)
 
         for j,tickers in enumerate(ticker_group):
             for i,ticker in enumerate(tickers):
@@ -653,13 +650,19 @@ class Window(QWidget):
                     s = pd.Series()
                     s.rename(f'_{j+1}{i+1}', inplace=True)  # 시리즈의 컬럼명 변경
                 df = pd.concat([df, s], axis=1)
-        # df['종목코드'] = df.index
         con.close()
         con = sqlite3.connect(save_file)
-        now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        df = df[df.index >= int(duration_s)]
+        df = df[df.index <= int(duration_e)]
         print(df)
         df.to_sql(now, con, if_exists='replace')
         con.close()
+        list_df = df.columns.tolist()
+        global list_df
+        self.chart = Chart(df, list_df[0],stock_code, date,self.edit2_t,self.edit3_t,self.edit4_t,self.edit5_t,self.edit7_t)
+        self.chart.setGeometry(0, 30, 3850, 1010)
+        self.chart.show()
 
     def holic_back(self,delay):
         # print(df_back)
@@ -742,6 +745,7 @@ class Window(QWidget):
         self.lbl_chart10 = QLabel('chart 10')
         self.lbl_chart11 = QLabel('chart 11')
         self.lbl_chart12 = QLabel('chart 12')
+        self.lbl_divi1 = QLabel('|')
         self.edit1_1_1 = QLineEdit(self)
         self.edit1_1_2 = QLineEdit(self)
         self.edit1_2_1 = QLineEdit(self)
@@ -1025,10 +1029,13 @@ class Window(QWidget):
         if not table_list:
             print('* DB 테이블이 비어있음 - 확인 필요 *')
         table_list = np.concatenate(table_list).tolist()
-        print(table_list)
-        print(table_list[-1])
+        # print(table_list)
+        # print(table_list[-1])
         df = pd.read_sql(f"SELECT * FROM '{table_list[-1]}'", con).set_index('index')
         list_df = df.columns.tolist()
+        if len(list_df) <60:
+            list_df = ['_' for x in range(60)]
+        # print(list_df)
         ticker_list = []
         line_list =[]
         for x in list_df:
@@ -1041,9 +1048,13 @@ class Window(QWidget):
                 line_list.append('')
             else:
                 line_list.append(val)
-                print(str(x)[p+1:])
-        print(ticker_list)
-        print(line_list)
+                # print(str(x)[p+1:])
+        # print(ticker_list)
+        # print(line_list)
+        duration_s = df.index[0].astype(str)
+        duration_e = df.index[-1].astype(str)
+        self.edit_start.setText(duration_s)
+        self.edit_end.setText(duration_e)
         self.edit1_1_1.setText(ticker_list[0])
         self.edit1_2_1.setText(ticker_list[1])
         self.edit1_3_1.setText(ticker_list[2])
@@ -2058,7 +2069,7 @@ def db_stock_list():
     df.rename(columns={'index': '종목코드'}, inplace=True)  # 컬럼명 변경
     return df
 class Chart(QWidget):
-    def __init__(self,df,stock_code,date,edit2,edit3,edit4,edit5,edit7):
+    def __init__(self,df,stock_name,date,edit2,edit3,edit4,edit5,edit7):
     # def __init__(self):
         super().__init__()
         # self.win = pg.GraphicsLayoutWidget(show=True)
@@ -2092,7 +2103,7 @@ class Chart(QWidget):
         # p1_1 = self.win.addPlot(row=0, col=0,title=stock_name + date,axisItems={'bottom': pg.DateAxisItem()})
         # p1_2 = self.win.addPlot(row=1, col=0,title='체결강도',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
 
-        p1_1  = self.win1.addPlot(row=0, col=0,title=f'{stock_code}',axisItems={'bottom': pg.DateAxisItem()})
+        p1_1  = self.win1.addPlot(row=0, col=0,title=f'{stock_name}',axisItems={'bottom': pg.DateAxisItem()})
         p1_2  = self.win1.addPlot(row=1, col=0,title='체결강도',axisItems={'bottom': pg.DateAxisItem()})
         p1_3  = self.win1.addPlot(row=2, col=0,title='체결강도/등락율',axisItems={'bottom': pg.DateAxisItem()})
         p1_4  = self.win1.addPlot(row=0, col=1,title='거래대금',axisItems={'bottom': pg.DateAxisItem()})
@@ -2106,7 +2117,7 @@ class Chart(QWidget):
         p1_12 = self.win1.addPlot(row=2, col=3,title='잔량2',axisItems={'bottom': pg.DateAxisItem()})
 
 
-        p2_1  = self.win2.addPlot(row=0, col=0, title=f'{stock_code}',axisItems={'bottom': pg.DateAxisItem()})
+        p2_1  = self.win2.addPlot(row=0, col=0, title=f'{stock_name}',axisItems={'bottom': pg.DateAxisItem()})
         p2_2  = self.win2.addPlot(row=1, col=0, title='체결강도', axisItems={'bottom': pg.DateAxisItem()})
         p2_3  = self.win2.addPlot(row=2, col=0, title='체결강도', axisItems={'bottom': pg.DateAxisItem()})
         p2_4  = self.win2.addPlot(row=0, col=1, title='거래대금', axisItems={'bottom': pg.DateAxisItem()})
