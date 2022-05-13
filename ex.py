@@ -32,22 +32,11 @@ cursor = conn.cursor()
 tickers = ['코스피100','코스피200','다우존스']
 lines = ['ma5','close','ma20']
 df = pd.DataFrame()
-graph = []
 for i, ticker in enumerate(tickers):
     line = lines[i]
     df_ticker = pd.read_sql("SELECT * FROM " + "'" + ticker + "'", conn).set_index('index')
     s = df_ticker[line]
     s.rename(f'{ticker}_{line}',inplace=True) #시리즈의 컬럼명 변경
-    graph.append(f'{ticker}_{line}')
     df = pd.concat([df, s],axis=1)
 conn.close()
 print(df)
-print(graph)
-con = sqlite3.connect("D:/db_files/save.db")
-now=datetime.datetime.now()
-df.to_sql(str(now),con)
-
-asdf =['1','as','']
-for dfk in asdf:
-    if str.isdigit(dfk):
-        print(dfk)

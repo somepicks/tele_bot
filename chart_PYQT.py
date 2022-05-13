@@ -635,15 +635,16 @@ class Window(QWidget):
         con = sqlite3.connect(db_file)
         df = pd.DataFrame()
         graph = []
-
+        print(ticker_group)
+        print(line_group)
         for j,tickers in enumerate(ticker_group):
             for i,ticker in enumerate(tickers):
                 if ticker:
                     lines = line_group[j]
                     line = lines[i]
-                    print(ticker)
                     df_ticker = pd.read_sql("SELECT * FROM " + "'" + ticker + "'", con).set_index('index')
                     s = df_ticker[line]
+                    print(s)
                     s.rename(f'{ticker}_{line}', inplace=True)  # 시리즈의 컬럼명 변경
                     graph.append(f'{ticker}_{line}')
                 elif not ticker:
@@ -653,14 +654,15 @@ class Window(QWidget):
         con.close()
         con = sqlite3.connect(save_file)
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(df)
         df = df[df.index >= int(duration_s)]
         df = df[df.index <= int(duration_e)]
         print(df)
         df.to_sql(now, con, if_exists='replace')
         con.close()
         list_df = df.columns.tolist()
-        global list_df
-        self.chart = Chart(df, list_df[0],stock_code, date,self.edit2_t,self.edit3_t,self.edit4_t,self.edit5_t,self.edit7_t)
+        date = f'{duration_s[:4]}/{duration_s[4:6]}/{duration_s[6:8]} ~ {duration_e[:4]}/{duration_e[4:6]}/{duration_e[6:8]}'
+        self.chart = Chart(df, date)
         self.chart.setGeometry(0, 30, 3850, 1010)
         self.chart.show()
 
@@ -723,15 +725,7 @@ class Window(QWidget):
                     print(self.holic_btn3.isChecked())
                     self.holic_show_back.close()
                     break
-    # def select_chart(self):
-    #     view = False
-    #     if self.radio_ch1.isChecked() == True:
-    #         print('chart1')
-    #         view = Chart_1
-    #     elif self.radio_ch2.isChecked() ==True:
-    #         print('chart2')
-    #         view = Chart_2
-    #     return view
+
     def init_QLineEdit(self):
         self.lbl_chart1 = QLabel('chart 1')
         self.lbl_chart2 = QLabel('chart 2')
@@ -2069,7 +2063,7 @@ def db_stock_list():
     df.rename(columns={'index': '종목코드'}, inplace=True)  # 컬럼명 변경
     return df
 class Chart(QWidget):
-    def __init__(self,df,stock_name,date,edit2,edit3,edit4,edit5,edit7):
+    def __init__(self,df,date):
     # def __init__(self):
         super().__init__()
         # self.win = pg.GraphicsLayoutWidget(show=True)
@@ -2100,35 +2094,36 @@ class Chart(QWidget):
         # d1 = Dock("Dock1")
         area.addDock(Dock("Dock1"), 'bottom')
 
+        df_list = df.columns.tolist()
+
         # p1_1 = self.win.addPlot(row=0, col=0,title=stock_name + date,axisItems={'bottom': pg.DateAxisItem()})
         # p1_2 = self.win.addPlot(row=1, col=0,title='체결강도',axisItems={'bottom': pg.AxisItem(orientation='bottom')})
+        p1_1  = self.win1.addPlot(row=0, col=0,title=f'{df_list[0]}_{date}',axisItems={'bottom': pg.DateAxisItem()})
+        p1_2  = self.win1.addPlot(row=1, col=0,title=f'{df_list[5]}',axisItems={'bottom': pg.DateAxisItem()})
+        p1_3  = self.win1.addPlot(row=2, col=0,title=f'{df_list[10]}',axisItems={'bottom': pg.DateAxisItem()})
+        p1_4  = self.win1.addPlot(row=0, col=1,title=f'{df_list[15]}',axisItems={'bottom': pg.DateAxisItem()})
+        p1_5  = self.win1.addPlot(row=1, col=1,title=f'{df_list[20]}',axisItems={'bottom': pg.DateAxisItem()})
+        p1_6  = self.win1.addPlot(row=2, col=1,title=f'{df_list[25]}',axisItems={'bottom': pg.DateAxisItem()})
+        p1_7  = self.win1.addPlot(row=0, col=2,title=f'{df_list[30]}',axisItems={'bottom': pg.DateAxisItem()})
+        p1_8  = self.win1.addPlot(row=1, col=2,title=f'{df_list[35]}',axisItems={'bottom': pg.DateAxisItem()})
+        p1_9  = self.win1.addPlot(row=2, col=2,title=f'{df_list[40]}',axisItems={'bottom': pg.DateAxisItem()})
+        p1_10 = self.win1.addPlot(row=0, col=3,title=f'{df_list[45]}',axisItems={'bottom': pg.DateAxisItem()})
+        p1_11 = self.win1.addPlot(row=1, col=3,title=f'{df_list[50]}',axisItems={'bottom': pg.DateAxisItem()})
+        p1_12 = self.win1.addPlot(row=2, col=3,title=f'{df_list[55]}',axisItems={'bottom': pg.DateAxisItem()})
 
-        p1_1  = self.win1.addPlot(row=0, col=0,title=f'{stock_name}',axisItems={'bottom': pg.DateAxisItem()})
-        p1_2  = self.win1.addPlot(row=1, col=0,title='체결강도',axisItems={'bottom': pg.DateAxisItem()})
-        p1_3  = self.win1.addPlot(row=2, col=0,title='체결강도/등락율',axisItems={'bottom': pg.DateAxisItem()})
-        p1_4  = self.win1.addPlot(row=0, col=1,title='거래대금',axisItems={'bottom': pg.DateAxisItem()})
-        p1_5  = self.win1.addPlot(row=1, col=1,title='거래대금/속도',axisItems={'bottom': pg.DateAxisItem()})
-        p1_6  = self.win1.addPlot(row=2, col=1,title='거래대금평균',axisItems={'bottom': pg.DateAxisItem()})
-        p1_7  = self.win1.addPlot(row=0, col=2,title='초당대금',axisItems={'bottom': pg.DateAxisItem()})
-        p1_8  = self.win1.addPlot(row=1, col=2,title='초당대금평균',axisItems={'bottom': pg.DateAxisItem()})
-        p1_9  = self.win1.addPlot(row=2, col=2,title='총잔량',axisItems={'bottom': pg.DateAxisItem()})
-        p1_10 = self.win1.addPlot(row=0, col=3,title='호가',axisItems={'bottom': pg.DateAxisItem()})
-        p1_11 = self.win1.addPlot(row=1, col=3,title='잔량1',axisItems={'bottom': pg.DateAxisItem()})
-        p1_12 = self.win1.addPlot(row=2, col=3,title='잔량2',axisItems={'bottom': pg.DateAxisItem()})
 
-
-        p2_1  = self.win2.addPlot(row=0, col=0, title=f'{stock_name}',axisItems={'bottom': pg.DateAxisItem()})
-        p2_2  = self.win2.addPlot(row=1, col=0, title='체결강도', axisItems={'bottom': pg.DateAxisItem()})
-        p2_3  = self.win2.addPlot(row=2, col=0, title='체결강도', axisItems={'bottom': pg.DateAxisItem()})
-        p2_4  = self.win2.addPlot(row=0, col=1, title='거래대금', axisItems={'bottom': pg.DateAxisItem()})
-        p2_5  = self.win2.addPlot(row=1, col=1, title='등락율',   axisItems={'bottom': pg.DateAxisItem()})
-        p2_6  = self.win2.addPlot(row=2, col=1, title='고저평균대비등락율', axisItems={'bottom': pg.DateAxisItem()})
-        p2_7  = self.win2.addPlot(row=0, col=2, title='초당대금', axisItems={'bottom': pg.DateAxisItem()})
-        p2_8  = self.win2.addPlot(row=1, col=2, title='초당대금평균', axisItems={'bottom': pg.DateAxisItem()})
-        p2_9  = self.win2.addPlot(row=2, col=2, title='총잔량', axisItems={'bottom': pg.DateAxisItem()})
-        p2_10 = self.win2.addPlot(row=0, col=3, title='호가', axisItems={'bottom': pg.DateAxisItem()})
-        p2_11 = self.win2.addPlot(row=1, col=3, title='잔량1', axisItems={'bottom': pg.DateAxisItem()})
-        p2_12 = self.win2.addPlot(row=2, col=3, title='잔량2', axisItems={'bottom': pg.DateAxisItem()})
+        p2_1  = self.win2.addPlot(row=0, col=0, title=f'{df_list[0]}_{date}',axisItems={'bottom': pg.DateAxisItem()})
+        p2_2  = self.win2.addPlot(row=1, col=0, title=f'{df_list[5]}', axisItems={'bottom': pg.DateAxisItem()})
+        p2_3  = self.win2.addPlot(row=2, col=0, title=f'{df_list[10]}', axisItems={'bottom': pg.DateAxisItem()})
+        p2_4  = self.win2.addPlot(row=0, col=1, title=f'{df_list[15]}', axisItems={'bottom': pg.DateAxisItem()})
+        p2_5  = self.win2.addPlot(row=1, col=1, title=f'{df_list[20]}',   axisItems={'bottom': pg.DateAxisItem()})
+        p2_6  = self.win2.addPlot(row=2, col=1, title=f'{df_list[25]}', axisItems={'bottom': pg.DateAxisItem()})
+        p2_7  = self.win2.addPlot(row=0, col=2, title=f'{df_list[30]}', axisItems={'bottom': pg.DateAxisItem()})
+        p2_8  = self.win2.addPlot(row=1, col=2, title=f'{df_list[35]}', axisItems={'bottom': pg.DateAxisItem()})
+        p2_9  = self.win2.addPlot(row=2, col=2, title=f'{df_list[40]}', axisItems={'bottom': pg.DateAxisItem()})
+        p2_10 = self.win2.addPlot(row=0, col=3, title=f'{df_list[45]}', axisItems={'bottom': pg.DateAxisItem()})
+        p2_11 = self.win2.addPlot(row=1, col=3, title=f'{df_list[50]}', axisItems={'bottom': pg.DateAxisItem()})
+        p2_12 = self.win2.addPlot(row=2, col=3, title=f'{df_list[55]}', axisItems={'bottom': pg.DateAxisItem()})
 
         p1_1.addLegend()
         p1_2.addLegend()
@@ -2247,6 +2242,7 @@ class Chart(QWidget):
         p2_11.clear()
         p2_12.clear()
 
+
         # xticks = [x.timestamp() - 32400 for x in df.index]
         df['index_time'] = pd.to_datetime(df.index, format='%Y%m%d')
         df = df.astype({'index_time': 'str'})
@@ -2257,8 +2253,9 @@ class Chart(QWidget):
 
         df['index_date'] = pd.to_datetime(df.index, format='%Y%m%d')
         df = df.astype({'index_date': 'str'})
-        p = df.index[df['날짜']!=df['날짜'].shift(1)] # 날짜가 바뀌는 행의 인덱스를 추출
-        df['index_date'] = df.loc[p,'index_date'] #추출한 인덱스값의 'index_date'컬럼 값만 남김
+
+        # p = df.index[df['날짜']!=df['날짜'].shift(1)] # 날짜가 바뀌는 행의 인덱스를 추출
+        # df['index_date'] = df.loc[p,'index_date'] #추출한 인덱스값의 'index_date'컬럼 값만 남김
         df['index_date'] = df['index_date'].str[5:11]
         df['index_date'] = df['index_date'].replace(np.nan,'',regex=True) #nan값을 공백으로 변경
 
@@ -2269,10 +2266,10 @@ class Chart(QWidget):
 
         df['number'] = range(0,len(df)) # 넘버링 컬럼 추가
         # print(df)
-        buy_index = df['number'][df['매수가'].isna() == False] #'매수가'가 nan이 아닌 행의 'number' 컬럼 값을 추출
-        buy_price = df['매수가'][df['매수가'].isna() == False] #'매수가'가 nan이 아닌 행의 '매수가' 컬럼의 값을 추출
-        sell_index = df['number'][df['매도가'].isna() == False] #'매도가'가 nan이 아닌 행의 'number' 컬럼 값을 추출
-        sell_price = df['매도가'][df['매도가'].isna() == False] #'매도가'가 nan이 아닌 행의 '매도가' 컬럼의 값을 추출
+        # buy_index = df['number'][df['매수가'].isna() == False] #'매수가'가 nan이 아닌 행의 'number' 컬럼 값을 추출
+        # buy_price = df['매수가'][df['매수가'].isna() == False] #'매수가'가 nan이 아닌 행의 '매수가' 컬럼의 값을 추출
+        # sell_index = df['number'][df['매도가'].isna() == False] #'매도가'가 nan이 아닌 행의 'number' 컬럼 값을 추출
+        # sell_price = df['매도가'][df['매도가'].isna() == False] #'매도가'가 nan이 아닌 행의 '매도가' 컬럼의 값을 추출
 
         time = df['index_chart'].tolist()
         xDict=dict(enumerate(time))
@@ -2292,179 +2289,142 @@ class Chart(QWidget):
         xValue = [int(x.timestamp()) - 32400 for x in df.index]
         print(df)
 
-        # time = df['index_chart'].tolist()
-        # xDict = dict(enumerate(time))
-        # xValue = list(xDict.keys())
-        # xtickts = [xDict.items()]
-        #
-        # date = df['index_date'].tolist()
-        # xDict = dict(enumerate(date))
-        # xDate = list(xDict.keys())
-        # xtickts_date = [xDict.items()]
-
-        # print('사용가능지표: ',end="")
-        # for i in range (len(df.columns)):
-        #     col_name = df.columns[i]
-        #     globals()['{}'.format(col_name)] = df[col_name].tolist()
-        #     print(col_name,', ',end="")
-        #     if i % 16==0:
-        #         print('\n')
-
         y_dot = pg.mkPen(color='y', width=1, style=QtCore.Qt.DotLine)
         g_dot = pg.mkPen(color='g', width=1, style=QtCore.Qt.DotLine)
         w_dot = pg.mkPen(color='w', width=1, style=QtCore.Qt.DotLine)
         r_dash = pg.mkPen(color='r', width=1, style=QtCore.Qt.DashLine)
         g_dash = pg.mkPen(color=[0,130,153], width=1.2, style=QtCore.Qt.DashLine)
-        p1_1.plot(x=xValue, y=df['이평5' ], pen=(120,200,200),name='이평5')
-        p1_1.plot(x=xValue, y=df['이평60' ], pen=(120,150,150),name='이평60')
-        # p1_1.plot(x=xValue, y=df['이평60마지' ], pen=y_dot,name='이평60마지')
-        p1_1.plot(x=xValue, y=df['이평300' ], pen=(128, 65,217),name='이평300')
-        # p1_1.plot(x=xValue, y=df['이평300마지' ], pen=g_dot,name='이평300마지')
-        p1_1.plot(x=xValue, y=df['이평1200' ], pen=(120, 50, 50),name='이평1200')
-        p1_1.plot(x=xValue, y=df['open'  ], pen=r_dash,name='open')
-        p1_1.plot(x=xValue, y=df['high'  ], pen=g_dash,name='high')
-        p1_1.plot(x=xValue, y=df['low'  ], pen=(  0, 51,153),name='low')
-        p1_1.plot(x=xValue, y=df['close'], pen=(200, 50, 50),name='close')
-        p1_1.plot(x=xValue, y=df['이평'  ], pen=(204,114, 61),name='이평')
 
-        p1_1.plot(x=buy_index, y=buy_price,   pen =None, symbolBrush =(200,  0,  0),symbolPen ='w', symbol='t' , symbolSize=10, name="진입") #마커
-        p1_1.plot(x=sell_index, y=sell_price, pen =None, symbolBrush =(  0,  0,200),symbolPen ='w', symbol='t1', symbolSize=10, name="청산") #마커
+        # p1_1.plot(x=buy_index, y=buy_price,   pen =None, symbolBrush =(200,  0,  0),symbolPen ='w', symbol='t' , symbolSize=10, name="진입") #마커
+        # p1_1.plot(x=sell_index, y=sell_price, pen =None, symbolBrush =(  0,  0,200),symbolPen ='w', symbol='t1', symbolSize=10, name="청산") #마커
         # lr = pg.LinearRegionItem([50, 100])
         # lr.setZValue(-1)
         # p1_1.addItem(lr)
 
-        # p1_2.plot(x=xValue, y=df['체결강도'],pen=(200, 50, 50),fillLevel=int(edit2), brush=(50,50,200,50),name='체결강도')
-        # p1_2.plot(x=xValue, y=df['체결강도평균'],   pen=(204,114, 61), name='체결강도평균')
-        # p1_2.plot(x=xValue, y=df['체결강도최고'],   pen=y_dot,         name='체결강도최고')
-        # p1_2.plot(x=xValue, y=df['체결강도최저'],   pen=g_dot,         name='체결강도최저')
-        # p1_2.plot(x=xValue, y=df['체결강도평균마지+'], pen=g_dash,        name='체결강도평균마지+')
-        # p1_2.plot(x=xValue, y=df['체결강도평균마지-'], pen=g_dash,        name='체결강도평균마지-')
+        p1_1.plot(x=xValue,  y=df[f'{df_list[0]}'], pen=(204, 61, 61),name=f'{df_list[0]}')
+        p1_1.plot(x=xValue,  y=df[f'{df_list[1]}'], pen=(204,166, 61),name=f'{df_list[1]}')
+        p1_1.plot(x=xValue,  y=df[f'{df_list[2]}'], pen=(159,201, 60),name=f'{df_list[2]}')
+        p1_1.plot(x=xValue,  y=df[f'{df_list[3]}'], pen=( 61,183,204),name=f'{df_list[3]}')
+        p1_1.plot(x=xValue,  y=df[f'{df_list[4]}'], pen=(128, 65,217),name=f'{df_list[4]}')
+        p1_2.plot(x=xValue,  y=df[f'{df_list[5]}'], pen=(204, 61, 61),name=f'{df_list[5]}')
+        p1_2.plot(x=xValue,  y=df[f'{df_list[6]}'], pen=(204,166, 61),name=f'{df_list[6]}')
+        p1_2.plot(x=xValue,  y=df[f'{df_list[7]}'], pen=(159,201, 60),name=f'{df_list[7]}')
+        p1_2.plot(x=xValue,  y=df[f'{df_list[8]}'], pen=( 61,183,204),name=f'{df_list[8]}')
+        p1_2.plot(x=xValue,  y=df[f'{df_list[9]}'], pen=(128, 65,217),name=f'{df_list[9]}')
+        p1_3.plot(x=xValue,  y=df[f'{df_list[10]}'], pen=(204, 61, 61), name=f'{df_list[10]}')
+        p1_3.plot(x=xValue,  y=df[f'{df_list[11]}'], pen=(204,166, 61), name=f'{df_list[11]}')
+        p1_3.plot(x=xValue,  y=df[f'{df_list[12]}'], pen=(159,201, 60), name=f'{df_list[12]}')
+        p1_3.plot(x=xValue,  y=df[f'{df_list[13]}'], pen=( 61,183,204), name=f'{df_list[13]}')
+        p1_3.plot(x=xValue,  y=df[f'{df_list[14]}'], pen=(128, 65,217), name=f'{df_list[14]}')
+        p1_4.plot(x=xValue,  y=df[f'{df_list[15]}'], pen=(204, 61, 61), name=f'{df_list[15]}')
+        p1_4.plot(x=xValue,  y=df[f'{df_list[16]}'], pen=(204,166, 61), name=f'{df_list[16]}')
+        p1_4.plot(x=xValue,  y=df[f'{df_list[17]}'], pen=(159,201, 60), name=f'{df_list[17]}')
+        p1_4.plot(x=xValue,  y=df[f'{df_list[18]}'], pen=( 61,183,204), name=f'{df_list[18]}')
+        p1_4.plot(x=xValue,  y=df[f'{df_list[19]}'], pen=(128, 65,217), name=f'{df_list[19]}')
+        p1_5.plot(x=xValue,  y=df[f'{df_list[20]}'], pen=(204, 61, 61), name=f'{df_list[20]}')
+        p1_5.plot(x=xValue,  y=df[f'{df_list[21]}'], pen=(204,166, 61), name=f'{df_list[21]}')
+        p1_5.plot(x=xValue,  y=df[f'{df_list[22]}'], pen=(159,201, 60), name=f'{df_list[22]}')
+        p1_5.plot(x=xValue,  y=df[f'{df_list[23]}'], pen=( 61,183,204), name=f'{df_list[23]}')
+        p1_5.plot(x=xValue,  y=df[f'{df_list[24]}'], pen=(128, 65,217), name=f'{df_list[24]}')
+        p1_6.plot(x=xValue,  y=df[f'{df_list[25]}'], pen=(204, 61, 61), name=f'{df_list[25]}')
+        p1_6.plot(x=xValue,  y=df[f'{df_list[26]}'], pen=(204, 166, 61), name=f'{df_list[26]}')
+        p1_6.plot(x=xValue,  y=df[f'{df_list[27]}'], pen=(159, 201, 60), name=f'{df_list[27]}')
+        p1_6.plot(x=xValue,  y=df[f'{df_list[28]}'], pen=(61, 183, 204), name=f'{df_list[28]}')
+        p1_6.plot(x=xValue,  y=df[f'{df_list[29]}'], pen=(128, 65, 217), name=f'{df_list[29]}')
+        p1_7.plot(x=xValue,  y=df[f'{df_list[30]}'], pen=(204, 61, 61), name=f'{df_list[30]}')
+        p1_7.plot(x=xValue,  y=df[f'{df_list[31]}'], pen=(204, 166, 61), name=f'{df_list[31]}')
+        p1_7.plot(x=xValue,  y=df[f'{df_list[32]}'], pen=(159, 201, 60), name=f'{df_list[32]}')
+        p1_7.plot(x=xValue,  y=df[f'{df_list[33]}'], pen=(61, 183, 204), name=f'{df_list[33]}')
+        p1_7.plot(x=xValue,  y=df[f'{df_list[34]}'], pen=(128, 65, 217), name=f'{df_list[34]}')
+        p1_8.plot(x=xValue,  y=df[f'{df_list[35]}'], pen=(204, 61, 61), name=f'{df_list[35]}')
+        p1_8.plot(x=xValue,  y=df[f'{df_list[36]}'], pen=(204,166, 61), name=f'{df_list[36]}')
+        p1_8.plot(x=xValue,  y=df[f'{df_list[37]}'], pen=(159,201, 60), name=f'{df_list[37]}')
+        p1_8.plot(x=xValue,  y=df[f'{df_list[38]}'], pen=( 61, 183,204), name=f'{df_list[38]}')
+        p1_8.plot(x=xValue,  y=df[f'{df_list[39]}'], pen=(128, 65, 217), name=f'{df_list[39]}')
+        p1_9.plot(x=xValue,  y=df[f'{df_list[40]}'], pen=(204, 61, 61), name=f'{df_list[40]}')
+        p1_9.plot(x=xValue,  y=df[f'{df_list[41]}'], pen=(204, 166, 61), name=f'{df_list[41]}')
+        p1_9.plot(x=xValue,  y=df[f'{df_list[42]}'], pen=(159, 201, 60), name=f'{df_list[42]}')
+        p1_9.plot(x=xValue,  y=df[f'{df_list[43]}'], pen=(61, 183, 204), name=f'{df_list[43]}')
+        p1_9.plot(x=xValue,  y=df[f'{df_list[44]}'], pen=(128, 65, 217), name=f'{df_list[44]}')
+        p1_10.plot(x=xValue, y=df[f'{df_list[45]}'], pen=(204, 61, 61), name=f'{df_list[45]}')
+        p1_10.plot(x=xValue, y=df[f'{df_list[46]}'], pen=(204, 166, 61), name=f'{df_list[46]}')
+        p1_10.plot(x=xValue, y=df[f'{df_list[47]}'], pen=(159, 201, 60), name=f'{df_list[47]}')
+        p1_10.plot(x=xValue, y=df[f'{df_list[48]}'], pen=(61, 183, 204), name=f'{df_list[48]}')
+        p1_10.plot(x=xValue, y=df[f'{df_list[49]}'], pen=(128, 65, 217), name=f'{df_list[49]}')
+        p1_11.plot(x=xValue, y=df[f'{df_list[50]}'], pen=(204, 61, 61), name=f'{df_list[50]}')
+        p1_11.plot(x=xValue, y=df[f'{df_list[51]}'], pen=(204,166, 61), name=f'{df_list[51]}')
+        p1_11.plot(x=xValue, y=df[f'{df_list[52]}'], pen=(159,201, 60), name=f'{df_list[52]}')
+        p1_11.plot(x=xValue, y=df[f'{df_list[53]}'], pen=( 61,183,204), name=f'{df_list[53]}')
+        p1_11.plot(x=xValue, y=df[f'{df_list[54]}'], pen=(128, 65,217), name=f'{df_list[54]}')
+        p1_12.plot(x=xValue, y=df[f'{df_list[55]}'], pen=(204, 61, 61), name=f'{df_list[55]}')
+        p1_12.plot(x=xValue, y=df[f'{df_list[56]}'], pen=(204, 166, 61), name=f'{df_list[56]}')
+        p1_12.plot(x=xValue, y=df[f'{df_list[57]}'], pen=(159, 201, 60), name=f'{df_list[57]}')
+        p1_12.plot(x=xValue, y=df[f'{df_list[58]}'], pen=( 61, 183, 204), name=f'{df_list[58]}')
+        p1_12.plot(x=xValue, y=df[f'{df_list[59]}'], pen=(128, 65, 217), name=f'{df_list[59]}')
 
-        # p1_3.plot(x=xValue, y=df['체강차체강평균'], pen=(50, 50, 200),name='체강차체강평균')
-        # p1_3.plot(x=xValue, y=df['체결강도'], pen=(50, 100, 50),name='체결강도')
-        # p1_3.plot(x=xValue, y=df['체강차체강평균'], pen=(152, 20, 20),fillLevel=int(edit7), brush=(50,50,200,50),name='체강-체강평균')
-        # p1_3.plot(x=xValue, y=df['체강차체강평균최저'], pen=g_dot,name='체강-체강평균(최저)')
-        # p1_3.plot(x=xValue, y=df['체강차체강평균최고'], pen=y_dot,name='체강-체강평균(최고)')
-        #
-        # p1_4.plot(x=xValue,y=df['당일거래대금'], pen='c',fillLevel=int(edit3), brush=(50,50,200,50),name='당일거래대금')
+        # p2_1.plot(x=buy_index, y=buy_price, pen=None, symbolBrush=(200, 0, 0), symbolPen='w', symbol='t', symbolSize=10, name="진입")  # 마커
+        # p2_1.plot(x=sell_index, y=sell_price, pen=None, symbolBrush=(0, 0, 200), symbolPen='w', symbol='t1', symbolSize=10, name="청산")  # 마커
 
-        # p1_5.plot(x=xValue, y=df['초당거래대금'], pen=(50, 50, 200),name='초당거래대금')
-        # p1_5.plot(x=xValue, y=df['초당거래대금변동'], pen=(50, 50, 200),name='초당거래대금변동')
-        # p1_5.plot(x=xValue, y=df['초당거래대금평균'],     pen=(200, 50, 50),fillLevel=5,brush=(200,50,50,50),name='초당거래대금평균')
-        # p1_5.plot(x=xValue, y=df['초당거래대금평균최고'], pen=y_dot,name='초당거래대금평균최고')
-        # p1_5.plot(x=xValue, y=df['초당거래대금평균최고마지'], pen=g_dot,name='초당거래대금평균최고마지')
-        # p1_5.plot(x=xValue, y=df['초대금평균차초대금평균최고'],     pen=(120,200,200),name='초대금평균-초대금평균최고')
-        # p1_5.plot(x=xValue, y=df['초당거래대금변동평균' ],pen=(128, 65,217),name='초당거래대금변동평균')
-
-
-        # p1_6.plot(x=xValue, y=df['거래대금각도' ],  pen=(120,200,200), name='거래대금각도')
-        # p1_6.plot(x=xValue, y=df['초당거래대금평균120'],  pen=(128, 65,217), name='초당거래대금평균120')
-
-        # p1_7.plot(x=xValue, y=df['초당매수수량'],     pen=(152, 20, 20),name='초당매수수량')
-        # p1_7.plot(x=xValue, y=df['초당매도수량'],     pen=(20 , 50,150),name='초당매도수량')
-        #
-        # p1_8.plot(x=xValue, y=df['초당매수대금평균'], pen=(200, 50, 50),name='초당매수대금평균')
-        # p1_8.plot(x=xValue, y=df['초당매수대금평균최고'], pen=y_dot,name='초당매수대금평균최고')
-        # p1_8.plot(x=xValue, y=df['초당매도대금평균'], pen=(120,200,200),name='초당매도대금평균')
-        # p1_8.plot(x=xValue, y=df['초당거래대금평균'],     pen=(100, 50, 50),name='초당거래대금평균')
-        #
-        # p1_9.plot(x=xValue, y=df['매수총잔량평균'], pen=(200, 50, 50),name='매수총잔량평균')
-        # p1_9.plot(x=xValue, y=df['매도총잔량평균'], pen=(120,200,200),fillLevel=int(edit4), brush=(50,50,200,50),name='매도총잔량평균')
-        # p1_9.plot(x=xValue, y=df['매도총잔량평균최고'], pen=y_dot,name='매도총잔량평균최고')
-        # p1_9.plot(x=xValue, y=df['매수총잔량평균최저'], pen=w_dot,name='매수총잔량평균최저')
-        # p1_9.plot(x=xValue, y=df['매도총잔량평균최저'], pen=g_dot,name='매도총잔량평균최저')
-        #
-        #
-        # p1_10.plot(x=xValue, y=df['고저평균대비등락율'], pen=(242,203, 95),fillLevel=int(edit5), brush=(50,50,200,50),name='고저평균대비등락율')
-        # p1_10.plot(x=xValue, y=df['매수호가1'], pen=(255,  0,  0),name='매수호가1')
-        # p1_10.plot(x=xValue, y=df['매수호가2'], pen=(255, 94,  0),name='매수호가2')
-        # p1_10.plot(x=xValue, y=df['매도호가1'], pen=(  1,  0,255),name='매도호가1')
-        # p1_10.plot(x=xValue, y=df['매도호가2'], pen=( 95,  0,255),name='매도호가2')
-
-
-        # p1_11.plot(x=xValue, y=df['매수잔량1'], pen=(152, 20, 20),name='매수잔량1')
-        # p1_11.plot(x=xValue, y=df['매도잔량1'], pen=(20, 50, 150),name='매도잔량1')
-        # p1_11.plot(x=xValue, y=df['매수잔량1평균'], pen=(242, 203, 95), name='매수잔량1평균')
-        # p1_11.plot(x=xValue, y=df['매도잔량1평균'], pen=(92, 210, 229), name='매도잔량1평균')
-        # p1_11.plot(x=xValue, y=df['매도잔량1평균최고'], pen=(y_dot), name='매도잔량1평균최고')
-        #
-        # p1_12.plot(x=xValue, y=df['매수잔량2'], pen=(152, 20, 20),name='매수잔량2')
-        # p1_12.plot(x=xValue, y=df['매도잔량2'], pen=(20, 50, 150),name='매도잔량2')
-        # p1_12.plot(x=xValue, y=df['매수잔량2평균'], pen=(242, 203, 95),name='매수잔량2평균')
-        # p1_12.plot(x=xValue, y=df['매도잔량2평균'], pen=(92, 210, 229),name='매도잔량2평균')
-        # p1_12.plot(x=xValue, y=df['매도잔량2평균최고'], pen=(y_dot), name='매도잔량2평균최고')
-        #
-        p2_1.plot(x=xValue, y=df['이평5'], pen=(120, 200, 200), name='이평5')
-        p2_1.plot(x=xValue, y=df['이평60'], pen=(120, 150, 150), name='이평60')
-        p2_1.plot(x=xValue, y=df['이평60마지' ], pen=y_dot,name='이평60마지')
-        p2_1.plot(x=xValue, y=df['이평300'], pen=(128, 65, 217), name='이평300')
-        p2_1.plot(x=xValue, y=df['이평300마지' ], pen=g_dot,name='이평300마지')
-        p2_1.plot(x=xValue, y=df['이평1200'], pen=(120, 50, 50), name='이평1200')
-        p2_1.plot(x=xValue, y=df['open'], pen=r_dash, name='open')
-        p2_1.plot(x=xValue, y=df['high'], pen=r_dash, name='high')
-        p2_1.plot(x=xValue, y=df['low'], pen=(0, 51, 153), name='low')
-        p2_1.plot(x=xValue, y=df['이평'], pen=(204, 114, 61), name='이평')
-        p2_1.plot(x=xValue, y=df['close'], pen=(200, 50, 50), name='close')
-        p2_1.plot(x=buy_index, y=buy_price, pen=None, symbolBrush=(200, 0, 0), symbolPen='w', symbol='t', symbolSize=10, name="진입")  # 마커
-        p2_1.plot(x=sell_index, y=sell_price, pen=None, symbolBrush=(0, 0, 200), symbolPen='w', symbol='t1', symbolSize=10, name="청산")  # 마커
-        # lr = pg.LinearRegionItem([50, 100])
-        # lr.setZValue(-1)
-        # p1_1.addItem(lr)
-
-        # p2_2.plot(x=xValue, y=df['체결강도'], pen=(200, 50, 50), fillLevel=int(edit2), brush=(50, 50, 200, 50), name='체결강도')
-        # p2_2.plot(x=xValue, y=df['체결강도평균'], pen=(204, 114, 61), name='체결강도평균')
-        # p2_2.plot(x=xValue, y=df['체결강도최고'], pen=y_dot, name='체결강도최고')
-        # p2_2.plot(x=xValue, y=df['체결강도최저'], pen=g_dot, name='체결강도최저')
-        # p2_2.plot(x=xValue, y=df['체결강도평균마지+'], pen=g_dash, name='체결강도평균마지+')
-        # p2_2.plot(x=xValue, y=df['체결강도평균마지-'], pen=g_dash, name='체결강도평균마지-')
-
-        # p1_3.plot(x=xValue, y=df['체결강도'], pen=(50, 100, 50),name='체결강도')
-        # p2_3.plot(x=xValue, y=df['체강차체강평균'], pen=(152, 20, 20), name='체강-체강평균')
-        # p2_3.plot(x=xValue, y=df['체강차체강평균최저'], pen=g_dot, name='체강-체강평균(최저)')
-        # p2_3.plot(x=xValue, y=df['체강차체강평균최고'], pen=y_dot, name='체강-체강평균(최고)')
-
-        # p2_4.plot(x=xDate, y=df['당일거래대금'], pen='c', fillLevel=int(edit3), brush=(50, 50, 200, 50), name='당일거래대금')
-
-        # p2_5.plot(x=xValue, y=df['초당거래대금'], pen=(50, 50, 200),name='초당거래대금')
-        # p2_5.plot(x=xValue, y=df['초당거래대금변동'], pen=(50, 50, 200),name='초당거래대금변동')
-
-        # p2_5.plot(x=xValue, y=df['체결강도각도'], pen=(152, 20, 20), name='체결강도각도')
-        # p2_5.plot(x=xValue, y=df['매도잔량1'], pen=(20, 50, 150), name='매도잔량1')
-        # p2_5.plot(x=xValue, y=df['매수잔량1평균'], pen=(242, 203, 95), name='매수잔량1평균')
-        # p2_5.plot(x=xValue, y=df['매도잔량1평균'], pen=(92, 210, 229), name='매도잔량1평균')
-        # p2_5.plot(x=xValue, y=df['매도잔량1평균최고'], pen=(y_dot), name='매도잔량1평균최고')
-
-        # p2_6.plot(x=xValue, y=df['체결강도평균각도']-df['체강차체강평균'], pen=(152, 20, 20), name='체결강도평균각도')
-        # p2_6.plot(x=xValue, y=df['체결강도평균각도'], pen=(152, 20, 20), name='체결강도평균각도')
-        # p2_6.plot(x=xValue, y=df['매도잔량2'], pen=(20, 50, 150), name='매도잔량2')
-        # p2_6.plot(x=xValue, y=df['매수잔량2평균'], pen=(242, 203, 95), name='매수잔량2평균')
-        # p2_6.plot(x=xValue, y=df['매도잔량2평균'], pen=(92, 210, 229), name='매도잔량2평균')
-        # p2_6.plot(x=xValue, y=df['매도잔량2평균최고'], pen=(y_dot), name='매도잔량2평균최고')
-
-        # p2_7.plot(x=xValue, y=df['초당매수수량'], pen=(152, 20, 20), name='초당매수수량')
-        # p2_7.plot(x=xValue, y=df['초당매도수량'], pen=(20, 50, 150), name='초당매도수량')
-        #
-        # p2_8.plot(x=xValue, y=df['초당매수대금평균'], pen=(200, 50, 50), name='초당매수대금평균')
-        # p2_8.plot(x=xValue, y=df['초당매수대금평균최고'], pen=y_dot, name='초당매수대금평균최고')
-        # p2_8.plot(x=xValue, y=df['초당매도대금평균'], pen=(120, 200, 200), name='초당매도대금평균')
-        # p2_8.plot(x=xValue, y=df['초당거래대금평균'], pen=(100, 50, 50), name='초당거래대금평균')
-        #
-        # p2_9.plot(x=xValue, y=df['매수총잔량평균'], pen=(200, 50, 50), name='매수총잔량평균')
-        # p2_9.plot(x=xValue, y=df['매도총잔량평균'], pen=(120, 200, 200), name='매도총잔량평균')
-        # p2_9.plot(x=xValue, y=df['매도총잔량평균최고'], pen=y_dot, name='매도총잔량평균최고')
-        # p2_9.plot(x=xValue, y=df['매수총잔량평균최저'], pen=w_dot, name='매수총잔량평균최저')
-        # p2_9.plot(x=xValue, y=df['매도총잔량평균최저'], pen=g_dot, name='매도총잔량평균최저')
-        #
-        # p2_10.plot(x=xValue, y=df['매수호가1'], pen=(255, 0, 0), name='매수호가1')
-        # p2_10.plot(x=xValue, y=df['매수호가2'], pen=(255, 94, 0), name='매수호가2')
-        # p2_10.plot(x=xValue, y=df['매도호가1'], pen=(1, 0, 255), name='매도호가1')
-        # p2_10.plot(x=xValue, y=df['매도호가2'], pen=(95, 0, 255), name='매도호가2')
-        #
-        # p2_11.plot(x=xValue, y=df['등락율'], pen=(0, 250, 0),name='등락율')
-
-        # p2_6.plot(x=xValue, y=df['거래대금각도'], pen=(120, 200, 200), name='거래대금각도')
-        # p2_12.plot(x=xValue, y=df['고저평균대비등락율'], pen=(242, 203, 95), fillLevel=int(edit5), brush=(50, 50, 200, 50), name='고저평균대비등락율')
-        # p1_6.plot(x=xValue, y=df['초당거래대금평균120'],  pen=(128, 65,217), name='초당거래대금평균120')
+        p2_1.plot(x=xValue, y=df[f'{df_list[0]}'], pen=(204, 61, 61), name=f'{df_list[0]}')
+        p2_1.plot(x=xValue, y=df[f'{df_list[1]}'], pen=(204, 166, 61), name=f'{df_list[1]}')
+        p2_1.plot(x=xValue, y=df[f'{df_list[2]}'], pen=(159, 201, 60), name=f'{df_list[2]}')
+        p2_1.plot(x=xValue, y=df[f'{df_list[3]}'], pen=(61, 183, 204), name=f'{df_list[3]}')
+        p2_1.plot(x=xValue, y=df[f'{df_list[4]}'], pen=(128, 65, 217), name=f'{df_list[4]}')
+        p2_2.plot(x=xValue, y=df[f'{df_list[5]}'], pen=(204, 61, 61), name=f'{df_list[5]}')
+        p2_2.plot(x=xValue, y=df[f'{df_list[6]}'], pen=(204, 166, 61), name=f'{df_list[6]}')
+        p2_2.plot(x=xValue, y=df[f'{df_list[7]}'], pen=(159, 201, 60), name=f'{df_list[7]}')
+        p2_2.plot(x=xValue, y=df[f'{df_list[8]}'], pen=(61, 183, 204), name=f'{df_list[8]}')
+        p2_2.plot(x=xValue, y=df[f'{df_list[9]}'], pen=(128, 65, 217), name=f'{df_list[9]}')
+        p2_3.plot(x=xValue, y=df[f'{df_list[10]}'], pen=(204, 61, 61), name=f'{df_list[10]}')
+        p2_3.plot(x=xValue, y=df[f'{df_list[11]}'], pen=(204, 166, 61), name=f'{df_list[11]}')
+        p2_3.plot(x=xValue, y=df[f'{df_list[12]}'], pen=(159, 201, 60), name=f'{df_list[12]}')
+        p2_3.plot(x=xValue, y=df[f'{df_list[13]}'], pen=(61, 183, 204), name=f'{df_list[13]}')
+        p2_3.plot(x=xValue, y=df[f'{df_list[14]}'], pen=(128, 65, 217), name=f'{df_list[14]}')
+        p2_4.plot(x=xValue, y=df[f'{df_list[15]}'], pen=(204, 61, 61), name=f'{df_list[15]}')
+        p2_4.plot(x=xValue, y=df[f'{df_list[16]}'], pen=(204, 166, 61), name=f'{df_list[16]}')
+        p2_4.plot(x=xValue, y=df[f'{df_list[17]}'], pen=(159, 201, 60), name=f'{df_list[17]}')
+        p2_4.plot(x=xValue, y=df[f'{df_list[18]}'], pen=(61, 183, 204), name=f'{df_list[18]}')
+        p2_4.plot(x=xValue, y=df[f'{df_list[19]}'], pen=(128, 65, 217), name=f'{df_list[19]}')
+        p2_5.plot(x=xValue, y=df[f'{df_list[20]}'], pen=(204, 61, 61), name=f'{df_list[20]}')
+        p2_5.plot(x=xValue, y=df[f'{df_list[21]}'], pen=(204, 166, 61), name=f'{df_list[21]}')
+        p2_5.plot(x=xValue, y=df[f'{df_list[22]}'], pen=(159, 201, 60), name=f'{df_list[22]}')
+        p2_5.plot(x=xValue, y=df[f'{df_list[23]}'], pen=(61, 183, 204), name=f'{df_list[23]}')
+        p2_5.plot(x=xValue, y=df[f'{df_list[24]}'], pen=(128, 65, 217), name=f'{df_list[24]}')
+        p2_6.plot(x=xValue, y=df[f'{df_list[25]}'], pen=(204, 61, 61), name=f'{df_list[25]}')
+        p2_6.plot(x=xValue, y=df[f'{df_list[26]}'], pen=(204, 166, 61), name=f'{df_list[26]}')
+        p2_6.plot(x=xValue, y=df[f'{df_list[27]}'], pen=(159, 201, 60), name=f'{df_list[27]}')
+        p2_6.plot(x=xValue, y=df[f'{df_list[28]}'], pen=(61, 183, 204), name=f'{df_list[28]}')
+        p2_6.plot(x=xValue, y=df[f'{df_list[29]}'], pen=(128, 65, 217), name=f'{df_list[29]}')
+        p2_7.plot(x=xValue, y=df[f'{df_list[30]}'], pen=(204, 61, 61), name=f'{df_list[30]}')
+        p2_7.plot(x=xValue, y=df[f'{df_list[31]}'], pen=(204, 166, 61), name=f'{df_list[31]}')
+        p2_7.plot(x=xValue, y=df[f'{df_list[32]}'], pen=(159, 201, 60), name=f'{df_list[32]}')
+        p2_7.plot(x=xValue, y=df[f'{df_list[33]}'], pen=(61, 183, 204), name=f'{df_list[33]}')
+        p2_7.plot(x=xValue, y=df[f'{df_list[34]}'], pen=(128, 65, 217), name=f'{df_list[34]}')
+        p2_8.plot(x=xValue, y=df[f'{df_list[35]}'], pen=(204, 61, 61), name=f'{df_list[35]}')
+        p2_8.plot(x=xValue, y=df[f'{df_list[36]}'], pen=(204, 166, 61), name=f'{df_list[36]}')
+        p2_8.plot(x=xValue, y=df[f'{df_list[37]}'], pen=(159, 201, 60), name=f'{df_list[37]}')
+        p2_8.plot(x=xValue, y=df[f'{df_list[38]}'], pen=(61, 183, 204), name=f'{df_list[38]}')
+        p2_8.plot(x=xValue, y=df[f'{df_list[39]}'], pen=(128, 65, 217), name=f'{df_list[39]}')
+        p2_9.plot(x=xValue, y=df[f'{df_list[40]}'], pen=(204, 61, 61), name=f'{df_list[40]}')
+        p2_9.plot(x=xValue, y=df[f'{df_list[41]}'], pen=(204, 166, 61), name=f'{df_list[41]}')
+        p2_9.plot(x=xValue, y=df[f'{df_list[42]}'], pen=(159, 201, 60), name=f'{df_list[42]}')
+        p2_9.plot(x=xValue, y=df[f'{df_list[43]}'], pen=(61, 183, 204), name=f'{df_list[43]}')
+        p2_9.plot(x=xValue, y=df[f'{df_list[44]}'], pen=(128, 65, 217), name=f'{df_list[44]}')
+        p2_10.plot(x=xValue, y=df[f'{df_list[45]}'], pen=(204, 61, 61), name=f'{df_list[45]}')
+        p2_10.plot(x=xValue, y=df[f'{df_list[46]}'], pen=(204, 166, 61), name=f'{df_list[46]}')
+        p2_10.plot(x=xValue, y=df[f'{df_list[47]}'], pen=(159, 201, 60), name=f'{df_list[47]}')
+        p2_10.plot(x=xValue, y=df[f'{df_list[48]}'], pen=(61, 183, 204), name=f'{df_list[48]}')
+        p2_10.plot(x=xValue, y=df[f'{df_list[49]}'], pen=(128, 65, 217), name=f'{df_list[49]}')
+        p2_11.plot(x=xValue, y=df[f'{df_list[50]}'], pen=(204, 61, 61), name=f'{df_list[50]}')
+        p2_11.plot(x=xValue, y=df[f'{df_list[51]}'], pen=(204, 166, 61), name=f'{df_list[51]}')
+        p2_11.plot(x=xValue, y=df[f'{df_list[52]}'], pen=(159, 201, 60), name=f'{df_list[52]}')
+        p2_11.plot(x=xValue, y=df[f'{df_list[53]}'], pen=(61, 183, 204), name=f'{df_list[53]}')
+        p2_11.plot(x=xValue, y=df[f'{df_list[54]}'], pen=(128, 65, 217), name=f'{df_list[54]}')
+        p2_12.plot(x=xValue, y=df[f'{df_list[55]}'], pen=(204, 61, 61), name=f'{df_list[55]}')
+        p2_12.plot(x=xValue, y=df[f'{df_list[56]}'], pen=(204, 166, 61), name=f'{df_list[56]}')
+        p2_12.plot(x=xValue, y=df[f'{df_list[57]}'], pen=(159, 201, 60), name=f'{df_list[57]}')
+        p2_12.plot(x=xValue, y=df[f'{df_list[58]}'], pen=(61, 183, 204), name=f'{df_list[58]}')
+        p2_12.plot(x=xValue, y=df[f'{df_list[59]}'], pen=(128, 65, 217), name=f'{df_list[59]}')
 
         crosshair1(main_pg=p1_1, sub_pg1=p1_2, sub_pg2=p1_3,sub_pg3=p1_4,sub_pg4=p1_5,sub_pg5=p1_6,sub_pg6=p1_7,sub_pg7=p1_8,sub_pg8=p1_9,sub_pg9=p1_10,sub_pg10=p1_11,sub_pg11=p1_12)
         crosshair2(main_pg=p2_1, sub_pg1=p2_2, sub_pg2=p2_3,sub_pg3=p2_4,sub_pg4=p2_5,sub_pg5=p2_6,sub_pg6=p2_7,sub_pg7=p2_8,sub_pg8=p2_9,sub_pg9=p2_10,sub_pg10=p2_11,sub_pg11=p2_12)
@@ -2589,7 +2549,6 @@ def df_add(df,avg,ch_max):
     # df['매수잔량2평균'] = df['매수잔량2'].rolling(window=avgtime).mean().round(3)
     # df['매도잔량2평균'] = df['매도잔량2'].rolling(window=avgtime).mean().round(3)
     # df['매도잔량2평균최고'] = df['매도잔량2평균'].rolling(window=avgtime).max()
-
 
     df['매수가'] = np.nan
     df['매도가'] = np.nan
