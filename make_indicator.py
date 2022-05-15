@@ -153,34 +153,43 @@ def change_price(df,ticker):
     df['최고등락'] = (df['high']-df['low'])/df['low']*100
     df['등락'] = (df['close']-df['open'])/df['open']*100
     return df
-def sma(df):
-    df['ma'] = round(talib.MA(df['close'], timeperiod=avgtime),1)
-    df['ma5'] = round(talib.MA(df['close'], timeperiod=5),1)
-    df['ma20'] = round(talib.MA(df['close'], timeperiod=20),1)
-    df['ma60'] = round(talib.MA(df['close'], timeperiod=60),1)
-    df['ma300'] = round(talib.MA(df['close'], timeperiod=300),1)
-    df['ma60마지'] = round(df['ma60']*0.98,1)
-    df['ma300마지'] = round(df['ma300']*0.98,1)
-    return df
+def sma(df,x):
+    avgtime = int(x[2:])
+    df[f'ma{avgtime}'] = round(talib.MA(df['close'], timeperiod=avgtime),4)
+    return df[f'ma{avgtime}']
 def CCI(df):
     df['cci'] = talib.CCI(df['high'],df['low'],df['close'], timeperiod=14)
     return df
 def CMO(df):
     df['cmo'] = talib.CMO(df['close'], timeperiod=14)
     return df
-def RSI(df):
-    df['rsi'] = round(talib.RSI(df['close'],timeperiod=14),1)
-    df['rsi_upper'] = 70
-    df['rsi_lower'] = 30
+def RSI(df,x):
+    if x == 'rsi':
+        df['rsi'] = round(talib.RSI(df['close'],timeperiod=14),1)
+        return df['rsi']
+    elif x == 'rsi_upper':
+        df['rsi_upper'] = 70
+        return df['rsi_upper']
+    elif x == 'rsi_lower':
+        df['rsi_lower'] = 30
+        return df['rsi_lower']
 
-    return df
 def BBAND(df):
     df['band_upper'],df['band_middle'],df['band_lower'] = talib.BBANDS(df['close'],20,2)
     return df
 def ATR(df):
     df['atr'] = talib.ATR(df['high'],df['low'],df['close'], timeperiod=14)
     return df
-
+def indicator(df,x):
+    if x == 'close':
+        s = df['close']
+    elif x[:2] == 'ma':
+        s = sma(df,x)
+    elif x == 'close':
+        s = df['close']
+    elif x[:3] == 'rsi':
+        s =RSI(df,x)
+    return s
 if __name__ == '__main__':
 
     interval = 'day'  #분봉
