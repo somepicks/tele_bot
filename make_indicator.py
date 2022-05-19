@@ -137,6 +137,7 @@ def heikin_ashi(df):
     heikin_ashi_df.rename(columns={'open':'hei_open','high':'hei_high','low':'hei_low','close':'hei_close'},inplace=True)
     # print(heikin_ashi_df)
     df = pd.concat([df, heikin_ashi_df], axis=1)
+    print(heikin_ashi_df)
     return df
 def df_add(df):
     avgtime = 30
@@ -183,12 +184,22 @@ def ATR(df):
 def indicator(df,x):
     if x == 'close':
         s = df['close']
+        # print(x)
     elif x[:2] == 'ma':
         s = sma(df,x)
-    elif x == 'close':
-        s = df['close']
+        # print(x)
     elif x[:3] == 'rsi':
         s =RSI(df,x)
+        # print(x)
+    elif x == '거래량':
+        s = df['volume']
+        # print(x)
+    elif x == '변동':
+        s = df['change']*100
+        # print(x)
+    elif x == '등락':
+        df.loc[df.index, '등락'] = (df['close'] - df.loc[df.index[0], 'close']) / df.loc[df.index[0], 'close'] * 100
+        s = df['등락']
     return s
 if __name__ == '__main__':
 
